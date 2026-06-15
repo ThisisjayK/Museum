@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Jayanth Adithya Kappagantula — The Museum</title>
+<meta name="description" content="A walk-through line-art museum portfolio for Jayanth Adithya Kappagantula. Product manager at the intersection of AI and healthcare." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#f3f1ea;        /* warm off-white gallery */
+    --ink:#1f2127;       /* dark ink: text + line-art */
+    --muted:#6f6a60;
+    --accent:#a2311f;    /* oxblood, matches the React site */
+    --line:rgba(31,33,39,.55);
+    --display:"Space Grotesk", system-ui, sans-serif;
+    --body:"Newsreader", Georgia, serif;
+    --mono:"IBM Plex Mono", ui-monospace, monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:var(--body); font-size:18px; line-height:1.6; -webkit-font-smoothing:antialiased;
+    overflow:hidden;  /* FPS takes over; fallback re-enables scroll */
+  }
+  @media (prefers-reduced-motion: reduce){ *,*::before,*::after{animation-duration:.01ms !important; transition-duration:.01ms !important;} }
+  ::selection{background:var(--accent); color:#fff;}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:3px;}
+  a{color:inherit;}
+
+  #scene{position:fixed; inset:0; width:100%; height:100%; z-index:0; display:block;}
+
+  /* ---- shared panel styling (reader + fallback) ---- */
+  .eyebrow{font-family:var(--mono); font-size:.72rem; font-weight:500; letter-spacing:.18em; text-transform:uppercase; color:var(--accent); margin:0 0 1rem; display:inline-flex; align-items:center; gap:.6em;}
+  .eyebrow::before{content:""; width:22px; height:1px; background:var(--accent);}
+  h1{font-family:var(--display); font-weight:600; font-size:clamp(2rem,5vw,3rem); line-height:1.04; letter-spacing:-.03em; margin:0 0 1rem;}
+  h2{font-family:var(--display); font-weight:600; font-size:clamp(1.5rem,3.4vw,2.2rem); line-height:1.08; letter-spacing:-.02em; margin:0 0 1rem;}
+  h3{font-family:var(--display); font-weight:600; font-size:1.2rem; letter-spacing:-.01em; margin:0 0 .3rem;}
+  .accent{color:var(--accent);}
+  p{margin:0 0 .8rem;}
+  .muted{color:var(--muted);}
+  .org{font-family:var(--mono); font-size:.74rem; color:var(--accent); letter-spacing:.03em; margin:.1rem 0 .7rem;}
+  ul.points{margin:0; padding-left:1.05em;} ul.points li{margin-bottom:.4rem;} ul.points li::marker{color:var(--accent);}
+  .note{margin-top:1.2rem; border:1px solid var(--line); border-left:2px solid var(--accent); border-radius:3px; padding:13px 15px;}
+  .note .lbl{font-family:var(--mono); font-size:.66rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:0 0 .45rem;}
+  .note p{margin:0;}
+  .tags{display:flex; flex-wrap:wrap; gap:7px; list-style:none; padding:0; margin:.8rem 0 0;}
+  .tags li{font-family:var(--mono); font-size:.66rem; color:var(--muted); border:1px solid var(--line); border-radius:3px; padding:4px 8px;}
+  .chips{display:flex; flex-wrap:wrap; gap:9px; list-style:none; padding:0; margin:.6rem 0 0;}
+  .chips li{font-family:var(--mono); font-size:.72rem; letter-spacing:.04em; border:1px solid var(--line); border-radius:999px; padding:6px 11px;}
+  .skills{display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin-top:1.1rem;}
+  .skills h3{font-family:var(--mono); font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); margin-bottom:.6rem;}
+  .skills ul{list-style:none; margin:0; padding:0;} .skills li{padding:6px 0; border-top:1px solid var(--line); font-size:.94rem;}
+  ol.phil{list-style:none; counter-reset:p; margin:1rem 0 0; padding:0;}
+  ol.phil li{counter-increment:p; display:grid; grid-template-columns:38px 1fr; gap:12px; align-items:baseline; padding:12px 0; border-top:1px solid var(--line); font-family:var(--display); font-weight:500; font-size:1.15rem; letter-spacing:-.01em;}
+  ol.phil li::before{content:counter(p,decimal-leading-zero); font-family:var(--mono); font-size:.76rem; color:var(--accent);}
+  .links{display:flex; flex-wrap:wrap; gap:10px; margin-top:1.3rem;}
+  .links a{font-family:var(--mono); font-size:.78rem; text-decoration:none; border:1px solid var(--ink); border-radius:999px; padding:8px 15px; transition:background .2s,color .2s;}
+  .links a:hover{background:var(--ink); color:var(--bg);}
+  .links a[data-todo]{border-style:dashed; color:var(--muted); border-color:var(--muted);}
+
+  /* ---- landing (2D line-art entrance) ---- */
+  #landing{position:fixed; inset:0; z-index:40; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; transition:opacity .9s ease, visibility .9s;}
+  #landing.gone{opacity:0; visibility:hidden;}
+  #landing svg{width:min(360px,72vw); height:auto;}
+  #landing .label{font-family:var(--mono); font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--muted);}
+  #landing .enter{font-family:var(--mono); font-size:.74rem; letter-spacing:.16em; text-transform:uppercase; color:var(--accent); display:flex; flex-direction:column; align-items:center; gap:.5rem;}
+  .chev{width:13px; height:13px; border-right:1.5px solid var(--accent); border-bottom:1.5px solid var(--accent); transform:rotate(45deg); animation:bob 1.8s ease-in-out infinite;}
+  @keyframes bob{0%,100%{transform:translateY(0) rotate(45deg);} 50%{transform:translateY(7px) rotate(45deg);}}
+
+  /* ---- top corner UI ---- */
+  #topbar{position:fixed; top:0; left:0; right:0; z-index:30; display:flex; align-items:center; justify-content:space-between; padding:16px clamp(16px,4vw,36px); font-family:var(--mono); font-size:.78rem; letter-spacing:.04em; pointer-events:none;}
+  #topbar .mark{display:inline-flex; align-items:center; gap:.5em; pointer-events:auto; text-decoration:none;}
+  #topbar .dot{width:9px; height:9px; border-radius:50%; background:var(--accent);}
+  #topbar .right{display:flex; gap:10px; pointer-events:auto;}
+  .btn{font-family:var(--mono); font-size:.76rem; text-decoration:none; cursor:pointer; color:var(--ink); border:1px solid var(--line); border-radius:999px; padding:7px 13px; background:rgba(243,241,234,.7); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); transition:border-color .2s,color .2s;}
+  .btn:hover{border-color:var(--accent); color:var(--accent);}
+
+  /* ---- click-to-explore prompt ---- */
+  #prompt{position:fixed; inset:0; z-index:25; display:none; align-items:center; justify-content:center; text-align:center; background:rgba(243,241,234,.55); -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px); cursor:pointer;}
+  #prompt .card{max-width:430px; padding:30px 34px; background:rgba(243,241,234,.92); border:1px solid var(--line); border-radius:6px;}
+  #prompt h3{margin-bottom:.8rem;}
+  #prompt .keys{font-family:var(--mono); font-size:.84rem; color:var(--muted); line-height:2;}
+  #prompt .go{margin-top:1rem; font-family:var(--mono); font-size:.74rem; letter-spacing:.14em; text-transform:uppercase; color:var(--accent);}
+
+  /* ---- press-E reader ---- */
+  /* centered reading modal */
+  #reader{position:fixed; inset:0; z-index:35; display:none; align-items:center; justify-content:center; padding:24px; background:rgba(31,33,39,.45); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);}
+  #reader.show{display:flex;}
+  #reader .card{position:relative; width:min(700px,94vw); padding:clamp(28px,4vw,46px); background:var(--bg); border:1px solid var(--line); border-radius:10px; box-shadow:0 24px 70px rgba(31,33,39,.3);}
+  #reader .rclose{position:absolute; top:14px; right:16px; font-family:var(--mono); font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); cursor:pointer; background:none; border:none;}
+  #reader .rclose:hover{color:var(--accent);}
+  #reader .rfoot{margin-top:1.2rem; font-family:var(--mono); font-size:.66rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);}
+
+  /* "press E" hint */
+  #hint{position:fixed; left:50%; bottom:42px; transform:translateX(-50%); z-index:20; font-family:var(--mono); font-size:.78rem; letter-spacing:.08em; color:var(--ink); background:rgba(243,241,234,.92); border:1px solid var(--line); border-radius:999px; padding:9px 16px; opacity:0; visibility:hidden; transition:opacity .25s ease;}
+  #hint.show{opacity:1; visibility:visible;}
+  #hint b{color:var(--accent); font-weight:500;}
+
+  /* ---- how-to modal ---- */
+  #howtoModal{position:fixed; inset:0; z-index:45; display:none; align-items:center; justify-content:center; background:rgba(31,33,39,.35);}
+  #howtoModal .card{max-width:440px; padding:30px 34px; background:var(--bg); border:1px solid var(--line); border-radius:8px;}
+  #howtoModal .keys{font-family:var(--mono); font-size:.86rem; color:var(--ink); line-height:2.1; margin:.6rem 0 1rem;}
+  #howtoModal .keys b{color:var(--accent); font-weight:500;}
+  #howtoModal .close{margin-top:.4rem;}
+
+  /* ---- offscreen content store (read by reader; revealed in fallback) ---- */
+  #content{position:absolute; left:-99999px; top:0; width:680px;}
+
+  /* ---- fallback (mobile / no WebGL): readable scrolling page ---- */
+  body.fallback{overflow:auto;}
+  body.fallback #scene, body.fallback #prompt, body.fallback #reader, body.fallback #hint, body.fallback #howtoBtn{display:none !important;}
+  body.fallback #landing{position:relative; height:auto; min-height:60vh; padding:80px 20px 40px;}
+  body.fallback #content{position:static; left:auto; width:100%; max-width:720px; margin:0 auto; padding:10px clamp(20px,6vw,40px) 80px;}
+  body.fallback #content .frameContent{padding:30px 0; border-top:1px solid var(--line);}
+  body.fallback #content .frameContent:first-child{border-top:none;}
+  #fallbackNote{display:none;}
+  body.fallback #fallbackNote{display:block; max-width:720px; margin:0 auto; padding:0 clamp(20px,6vw,40px); font-family:var(--mono); font-size:.78rem; color:var(--muted); line-height:1.7;}
+  body.fallback #landing .enter{display:none;}
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<div id="topbar">
+  <a class="mark" href="#"><span class="dot"></span>JAK · THE MUSEUM</a>
+  <div class="right">
+    <button class="btn" id="howtoBtn">How to move</button>
+    <!-- EDIT: point at your fast React portfolio -->
+    <a class="btn" id="escape" href="ADD_STANDARD_SITE_URL">Standard portfolio →</a>
+  </div>
+</div>
+
+<!-- 2D line-art entrance -->
+<div id="landing">
+  <p class="label">The studio of Jayanth Kappagantula</p>
+  <svg viewBox="0 0 300 200" fill="none" stroke="#1f2127" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="20,70 150,22 280,70" />
+    <line x1="30" y1="70" x2="30" y2="150" /><line x1="78" y1="70" x2="78" y2="150" />
+    <line x1="126" y1="70" x2="126" y2="150" /><line x1="174" y1="70" x2="174" y2="150" />
+    <line x1="222" y1="70" x2="222" y2="150" /><line x1="270" y1="70" x2="270" y2="150" />
+    <line x1="16" y1="70" x2="284" y2="70" /><line x1="10" y1="80" x2="290" y2="80" />
+    <line x1="10" y1="150" x2="290" y2="150" /><line x1="2" y1="162" x2="298" y2="162" />
+    <line x1="-4" y1="174" x2="304" y2="174" />
+    <rect x="132" y="96" width="36" height="54" stroke="#a2311f" />
+  </svg>
+  <span class="enter">Scroll to enter <span class="chev"></span></span>
+</div>
+
+<!-- click-to-explore prompt -->
+<div id="prompt">
+  <div class="card">
+    <p class="eyebrow" style="justify-content:center;">You are inside</p>
+    <h3>Click to look around</h3>
+    <p class="keys">Move&nbsp;&nbsp;W A S D&nbsp;/&nbsp;arrow keys<br/>Look&nbsp;&nbsp;move your mouse<br/>Read&nbsp;&nbsp;face a frame, press E<br/>Release&nbsp;&nbsp;press Esc</p>
+    <p class="go">Click anywhere to begin</p>
+  </div>
+</div>
+
+<!-- "press E" hint + centered reading modal (desktop) -->
+<div id="hint">Press <b>E</b> to read</div>
+<div id="reader">
+  <div class="card">
+    <button class="rclose" id="readerClose">Close ✕</button>
+    <div id="readerBody"></div>
+    <p class="rfoot">Press E or Esc to close</p>
+  </div>
+</div>
+
+<!-- how-to modal -->
+<div id="howtoModal">
+  <div class="card">
+    <p class="eyebrow">How to move</p>
+    <p class="keys"><b>W A S D</b> or <b>arrow keys</b> to walk.<br/><b>Mouse</b> to look around.<br/>Face a frame and press <b>E</b> to read it.<br/><b>Esc</b> to release the cursor or close.</p>
+    <button class="btn close" id="howtoClose">Got it</button>
+  </div>
+</div>
+
+<p id="fallbackNote">The full walk-through museum needs a desktop with a keyboard and mouse. Here is everything, laid out to read.</p>
+
+<!-- CONTENT STORE: one block per framed piece (read by the reader; shown in fallback) -->
+<div id="content">
+  <div class="frameContent" data-frame="intro">
+    <p class="eyebrow">Who I am</p>
+    <h1>Jayanth Adithya <span class="accent">Kappagantula</span>.</h1>
+    <p>I sit at the intersection of product management, AI, and healthcare tech. My thinking is systems-oriented, data-first, and built around how people actually behave. My product philosophy: transparency, personalization, and a deep read on the user.</p>
+    <p class="muted">MS Information Systems, Northeastern University, Boston (GPA 3.76, expected Aug 2026). BTech Electronics and Instrumentation Engineering, JNTUH, Hyderabad (2019–2023).</p>
+  </div>
+
+  <div class="frameContent" data-frame="exp1">
+    <p class="eyebrow">Experience · 2025</p>
+    <h3>Technical Product Manager Intern</h3>
+    <p class="org">Stage Zero Health · Boston, MA</p>
+    <ul class="points">
+      <li>Defined product behavior and guardrails for a Gemini-powered AI chatbot, in production, that guides users through cancer-risk scores using a four-archetype persona engine (Skeptic, Health Optimizer, Anxious, Optimistic).</li>
+      <li>Defined requirements for an event-driven risk-scoring API on FastAPI, in production, returning real-time scores and personalized screening recommendations.</li>
+      <li>Built the email and SMS communication strategy on Customer.io and SendGrid; ran funnel analysis, drop-off tracking, and A/B tests in Google Analytics.</li>
+      <li>Prototyped features in Claude Code, with several shipping as production features. Identified a core trust violation: 60 questions before a paywall, framed as a product-philosophy problem about transparency and respect.</li>
+    </ul>
+  </div>
+
+  <div class="frameContent" data-frame="exp2">
+    <p class="eyebrow">Experience · 2024</p>
+    <h3>Pega System Architect</h3>
+    <p class="org">Bluevoir Technologies · Hyderabad, India</p>
+    <ul class="points">
+      <li>Built agentic case-management workflows with Pega GenAI Blueprint, reducing manual data processing by 40%.</li>
+      <li>Designed data transformation and harmonization pipelines integrating Salesforce CRM with enterprise backends.</li>
+      <li>Integrated external APIs including Change Healthcare and WHO into production workflows; led scrum ceremonies and sprint planning.</li>
+    </ul>
+  </div>
+
+  <div class="frameContent" data-frame="exp3">
+    <p class="eyebrow">Experience · 2023</p>
+    <h3>Business Analyst</h3>
+    <p class="org">Bluevoir Technologies · Hyderabad, India</p>
+    <ul class="points">
+      <li>Wrote BRDs and user stories connecting customer pain points to technical implementation.</li>
+      <li>Managed stakeholder communication across SDLC phases, including UAT and deployment.</li>
+    </ul>
+    <div class="note">
+      <p class="lbl">Why the engineering years matter</p>
+      <p>Before product, I worked as a systems architect and analyst. That gave me direct exposure to how enterprise software breaks, how APIs fail in production, and how to translate business requirements into specs. It is why I can talk to engineers.</p>
+    </div>
+  </div>
+
+  <div class="frameContent" data-frame="certs">
+    <p class="eyebrow">Certifications</p>
+    <ul class="chips">
+      <li>Salesforce Certified Administrator</li>
+      <li>Salesforce Certified Associate</li>
+      <li>Pega Certified Business Architect</li>
+      <li>Pega Certified System Architect</li>
+    </ul>
+  </div>
+
+  <div class="frameContent" data-frame="skills">
+    <p class="eyebrow">Toolkit</p>
+    <h2>How I work, and what I work with.</h2>
+    <div class="skills">
+      <div><h3>Product</h3><ul><li>Roadmap planning</li><li>PRDs</li><li>Backlog management</li><li>User-story writing</li><li>Customer discovery</li><li>Jira · Asana · Notion</li><li>Figma · Miro</li></ul></div>
+      <div><h3>AI &amp; prototyping</h3><ul><li>Generative AI</li><li>Prompt engineering</li><li>Agentic automation</li><li>NLP</li><li>RAG</li><li>Data-pipeline design</li><li>Claude · Cursor · Codex · Lovable</li></ul></div>
+      <div><h3>Platforms</h3><ul><li>Salesforce CRM</li><li>Salesforce Data Cloud</li><li>Pega BPM</li><li>SendGrid · Customer.io</li><li>Zapier</li><li>Python</li><li>SQL</li></ul></div>
+    </div>
+  </div>
+
+  <div class="frameContent" data-frame="philosophy">
+    <p class="eyebrow">Product philosophy</p>
+    <h2>In my own words.</h2>
+    <ol class="phil">
+      <li>Data first, but data needs context.</li>
+      <li>Give heavy weight to user friction and feedback.</li>
+      <li>Prioritize against the roadmap and business goals.</li>
+      <li>Products should be personalized to the core.</li>
+      <li>Users value honest products that do not overpromise.</li>
+      <li>Understand user behavior deeply: time on product, interaction patterns.</li>
+    </ol>
+  </div>
+
+  <div class="frameContent" data-frame="koko">
+    <p class="eyebrow">Case study · Consumer</p>
+    <h3>Koko — and knowing when to stop building</h3>
+    <p>A mobile restaurant-saving app for three failure modes: capture friction (recommendations arrive in five-second windows), the enrichment gap (a name alone is useless later), and the retrieval gap (every competitor makes you remember to check). I built a mobile-first prototype with voice input, LLM parsing via Groq / Llama 3, place enrichment via OpenStreetMap / Nominatim, simulated geofence alerts, and notification suppression. Then I found the gating constraint: sharing a social reel into the app needs a native share-sheet extension because of CORS, so I made a deliberate stop decision rather than over-build.</p>
+    <ul class="tags"><li>HTML/CSS/JS</li><li>Groq (Llama 3)</li><li>Foursquare Places</li><li>OpenStreetMap / Nominatim</li><li>Netlify</li></ul>
+  </div>
+
+  <div class="frameContent" data-frame="synthia">
+    <p class="eyebrow">Case study · AI · In development</p>
+    <h3>Synthia — turning interviews into signal, not soup</h3>
+    <p>An AI user-interview synthesis tool. Three-stage pipeline: PII anonymization via AI (not regex), per-interview analysis against a fixed seven-bucket framework, and cross-interview synthesis. Key decisions: two-stage architecture for traceability, optional anonymization as a nudge rather than a mandate, paste-text only for V1 scope discipline, a manual synthesis trigger to avoid unnecessary API cost, and surfacing divergent signals rather than averaging them away.</p>
+    <ul class="tags"><li>React</li><li>Tailwind (Vite)</li><li>Supabase</li><li>Vercel</li><li>Anthropic API (Claude Sonnet)</li></ul>
+  </div>
+
+  <div class="frameContent" data-frame="aging">
+    <p class="eyebrow">Case study · Systems design</p>
+    <h3>Human aging as a complex adaptive system</h3>
+    <p>Applied five analytical frameworks (IPO, Iceberg Model, Causal Loop Diagram, System Archetypes, Stakeholder Network Analysis) to diagnose why aging interventions fail structurally. Mapped 7 reinforcing loops, 5 balancing loops, 7 bottlenecks, and 5 core systemic problems, then produced a 16-item prioritized backlog, 3 persona journey maps, a 17-KPI measurement framework, and an 18-item innovation roadmap.</p>
+  </div>
+
+  <div class="frameContent" data-frame="lidar">
+    <p class="eyebrow">Case study · Engineering</p>
+    <h3>Obstacle detection with 2D LIDAR</h3>
+    <p>Real-time obstacle detection using RPLIDAR, Python, and WebSockets, producing a live 2D point-cloud map. A full sensor-to-output pipeline.</p>
+  </div>
+
+  <div class="frameContent" data-frame="facemask">
+    <p class="eyebrow">Case study · Engineering</p>
+    <h3>Face mask detection</h3>
+    <p>Real-time detection using Python, OpenCV, and TensorFlow on live video streams. End-to-end ML pipeline from data preparation through deployment.</p>
+  </div>
+
+  <div class="frameContent" data-frame="research">
+    <p class="eyebrow">Research</p>
+    <h3>Operational and security risk in generative AI and agents</h3>
+    <p>A systematic analysis of 26 verified sources on how generative AI and autonomous agents introduce operational and security risks that existing governance models were not designed to handle. Identified 12 corroborated trends, applied NIST AI RMF, OWASP LLM Top 10 (2025), NIST AI 600-1, ISACA, and ISO/IEC 42001, and documented three production incidents: Replit, PocketOS / Cursor, and Air Canada.</p>
+    <ul class="tags"><li>INFO 6500</li><li>2026</li><li>26 sources</li></ul>
+  </div>
+
+  <div class="frameContent" data-frame="contact">
+    <p class="eyebrow">The exit</p>
+    <h2>Looking for full-time PM and <span class="accent">AI PM</span> roles, starting August 2026.</h2>
+    <div class="links">
+      <!-- EDIT every link -->
+      <a href="mailto:ADD_YOUR_EMAIL" data-todo>Email</a>
+      <a href="ADD_LINKEDIN_URL" data-todo>LinkedIn</a>
+      <a href="ADD_GITHUB_URL" data-todo>GitHub</a>
+      <a href="ADD_RESUME_LINK" data-todo>Résumé (PDF)</a>
+    </div>
+  </div>
+</div>
+
+<noscript><p style="padding:24px;">This museum uses JavaScript. Please enable it, or view the standard portfolio.</p></noscript>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script>
+  function clamp(x,a,b){ return Math.max(a, Math.min(b, x)); }
+  var isMobile = window.matchMedia('(pointer: coarse)').matches;
+  var frames = [], gemList = [];
+
+  function showFallback(){ document.body.classList.add('fallback'); }
+
+  // How-to modal (works in fallback too)
+  var howtoBtn = document.getElementById('howtoBtn');
+  var howtoModal = document.getElementById('howtoModal');
+  var howtoClose = document.getElementById('howtoClose');
+  howtoBtn.addEventListener('click', function(){ howtoModal.style.display = 'flex'; });
+  howtoClose.addEventListener('click', function(){ howtoModal.style.display = 'none'; });
+
+  if (isMobile || typeof THREE === 'undefined') {
+    showFallback();
+  } else {
+    try { initMuseum(); } catch (err) { console.warn('Museum disabled:', err); showFallback(); }
+  }
+
+  function initMuseum(){
+    var canvas = document.getElementById('scene');
+    var scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf3f1ea);
+    scene.fog = new THREE.Fog(0xf3f1ea, 14, 60);
+
+    var camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 200);
+    camera.position.set(0, 2.4, -4);
+
+    var renderer = new THREE.WebGLRenderer({ canvas:canvas, antialias:true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+
+    // ---- lighting ----
+    var ambient = new THREE.AmbientLight(0xffffff, 1.0);
+    scene.add(ambient);
+
+    var sun = new THREE.DirectionalLight(0xffffff, 0.3);
+    sun.position.set(0, 20, -18);
+    sun.target.position.set(0, 0, -18);
+    scene.add(sun); scene.add(sun.target);
+
+    [-6, -12, -18, -24, -30].forEach(function(sz){
+      var spot = new THREE.SpotLight(0xffffff, 0.8, 20, Math.PI * 0.22, 0.5, 1.5);
+      spot.position.set(0, 6.6, sz);
+      spot.target.position.set(0, 0, sz);
+      scene.add(spot); scene.add(spot.target);
+    });
+
+    // ---- materials ----
+    var wallMat  = new THREE.MeshLambertMaterial({ color:0xf3f1ea });
+    var floorMat = new THREE.MeshLambertMaterial({ color:0xd8d3c6 }); // noticeably darker so it reads as floor
+    var ceilMat  = new THREE.MeshLambertMaterial({ color:0xf8f6f0 });
+    var trimMat  = new THREE.MeshLambertMaterial({ color:0xc8c2b6 });
+    var frameMat       = new THREE.MeshBasicMaterial({ color:0xffffff });
+    var frameActiveMat = new THREE.MeshBasicMaterial({ color:0xa2311f });
+    var frameBackMat   = new THREE.MeshBasicMaterial({ color:0x9a9486 });
+    var frameBackActiveMat = new THREE.MeshBasicMaterial({ color:0x7a2010 });
+    var doorTrimMat = new THREE.MeshLambertMaterial({ color:0xa2311f });
+    var doorFillMat = new THREE.MeshLambertMaterial({ color:0x1a1a1a }); // dark doorway
+
+    function v(x,y,z){ return new THREE.Vector3(x,y,z); }
+
+    var RW = 9, FRONT = 0, BACK = -36, TOP = 7;
+
+    // ---- solid room shell (6 individual planes, all FrontSide facing inward) ----
+    var roomLen = Math.abs(BACK - FRONT); // 36
+    var roomW   = RW * 2;                 // 18
+    var roomH   = TOP;                    // 7
+    var midZ    = (FRONT + BACK) / 2;    // -18
+
+    // floor
+    var floor = new THREE.Mesh(new THREE.PlaneGeometry(roomW, roomLen), floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.set(0, 0, midZ);
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    // ceiling
+    var ceil = new THREE.Mesh(new THREE.PlaneGeometry(roomW, roomLen), ceilMat);
+    ceil.rotation.x = Math.PI / 2;
+    ceil.position.set(0, roomH, midZ);
+    scene.add(ceil);
+
+    // left wall (x = -RW, facing +x)
+    var leftWall = new THREE.Mesh(new THREE.PlaneGeometry(roomLen, roomH), wallMat);
+    leftWall.rotation.y = Math.PI / 2;
+    leftWall.position.set(-RW, roomH / 2, midZ);
+    scene.add(leftWall);
+
+    // right wall (x = +RW, facing -x)
+    var rightWall = new THREE.Mesh(new THREE.PlaneGeometry(roomLen, roomH), wallMat);
+    rightWall.rotation.y = -Math.PI / 2;
+    rightWall.position.set(RW, roomH / 2, midZ);
+    scene.add(rightWall);
+
+    // back wall (z = BACK, facing +z)
+    var backWall = new THREE.Mesh(new THREE.PlaneGeometry(roomW, roomH), wallMat);
+    backWall.rotation.y = Math.PI;
+    backWall.position.set(0, roomH / 2, BACK);
+    scene.add(backWall);
+
+    // front wall (z = FRONT, facing -z)
+    var frontWall = new THREE.Mesh(new THREE.PlaneGeometry(roomW, roomH), wallMat);
+    frontWall.position.set(0, roomH / 2, FRONT);
+    scene.add(frontWall);
+
+    // all walls face inward by rotation — no BackSide needed
+
+    // baseboard trim — left and right side walls
+    [-RW + 0.02, RW - 0.02].forEach(function(x){
+      var trim = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.2, roomLen), trimMat);
+      trim.position.set(x, 0.1, midZ);
+      scene.add(trim);
+    });
+    // back wall baseboard
+    var btrim = new THREE.Mesh(new THREE.BoxGeometry(roomW, 0.2, 0.06), trimMat);
+    btrim.position.set(0, 0.1, BACK + 0.03);
+    scene.add(btrim);
+    // front wall baseboard
+    var ftrim = new THREE.Mesh(new THREE.BoxGeometry(roomW, 0.2, 0.06), trimMat);
+    ftrim.position.set(0, 0.1, FRONT - 0.03);
+    scene.add(ftrim);
+
+    // subtle floor seam lines
+    var seamMat = new THREE.MeshLambertMaterial({ color:0xd8d3c8 });
+    for(var sz = -4; sz > BACK; sz -= 4){
+      var seam = new THREE.Mesh(new THREE.PlaneGeometry(roomW, 0.03), seamMat);
+      seam.rotation.x = -Math.PI / 2;
+      seam.position.set(0, 0.001, sz);
+      scene.add(seam);
+    }
+
+    // ceiling light fixtures
+    var fixtureMat = new THREE.MeshLambertMaterial({ color:0xdedad2 });
+    [-6, -12, -18, -24, -30].forEach(function(fz){
+      var disc = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.04, 16), fixtureMat);
+      disc.position.set(0, roomH - 0.02, fz);
+      scene.add(disc);
+    });
+
+    // door fill (dark plane just behind the front wall opening)
+    var dh = 4.5, dw = 2.8;
+    var doorFill = new THREE.Mesh(new THREE.PlaneGeometry(dw, dh), doorFillMat);
+    doorFill.position.set(0, dh / 2, -0.15);
+    scene.add(doorFill);
+
+    // door trim on front wall (oxblood surround)
+    var doorTop = new THREE.Mesh(new THREE.BoxGeometry(dw + 0.24, 0.12, 0.12), doorTrimMat);
+    doorTop.position.set(0, dh + 0.06, -0.06); scene.add(doorTop);
+    var doorL = new THREE.Mesh(new THREE.BoxGeometry(0.12, dh, 0.12), doorTrimMat);
+    doorL.position.set(-dw/2 - 0.06, dh/2, -0.06); scene.add(doorL);
+    var doorR = doorL.clone(); doorR.position.x = dw/2 + 0.06; scene.add(doorR);
+
+    // ---- GLB loader ----
+    var loader = new THREE.GLTFLoader();
+    var whaleModel = null, sharkModel = null;
+
+    function loadGLB(url, onLoad){
+      loader.load(url, function(gltf){ onLoad(gltf.scene); },
+        undefined,
+        function(err){ console.warn('GLB load failed:', url, err); }
+      );
+    }
+
+    // ---- WHALE — suspended from ceiling, slowly rotating ----
+    loadGLB('models/blue_whale.glb', function(model){
+      whaleModel = model;
+      // fit to a reasonable size
+      var box = new THREE.Box3().setFromObject(model);
+      var size = box.getSize(new THREE.Vector3());
+      var maxDim = Math.max(size.x, size.y, size.z);
+      var scale = 7 / maxDim; // target ~7 units long
+      model.scale.setScalar(scale);
+      // center and suspend — Y=5.2 hangs it from ceiling
+      var center = box.getCenter(new THREE.Vector3());
+      model.position.set(-center.x * scale, 5.2 - center.y * scale, -18 - center.z * scale);
+      scene.add(model);
+    });
+
+    // ---- SHARK — bursting through right wall ----
+    loadGLB('models/Tiburo_n_nadando.glb', function(model){
+      sharkModel = model;
+      var box = new THREE.Box3().setFromObject(model);
+      var size = box.getSize(new THREE.Vector3());
+      var maxDim = Math.max(size.x, size.y, size.z);
+      var scale = 3.5 / maxDim;
+      model.scale.setScalar(scale);
+      var center = box.getCenter(new THREE.Vector3());
+      // position bursting through right wall at mid-gallery, angled inward
+      model.position.set(7.5 - center.x * scale, 2.5 - center.y * scale, -22 - center.z * scale);
+      model.rotation.y = -Math.PI * 0.55; // angled nose-first into room
+      model.rotation.z = 0.15; // slight upward tilt
+      scene.add(model);
+    });
+
+    // ---- MOUNTAIN — center of room ----
+    loadGLB('models/snowy_mountain_v1.glb', function(model){
+      var box = new THREE.Box3().setFromObject(model);
+      var size = box.getSize(new THREE.Vector3());
+      var maxDim = Math.max(size.x, size.y, size.z);
+      var scale = 4.5 / maxDim;
+      model.scale.setScalar(scale);
+      var center = box.getCenter(new THREE.Vector3());
+      model.position.set(-center.x * scale, -center.y * scale, -18 - center.z * scale);
+      scene.add(model);
+    });
+
+    // ---- MICROPHONE — back-left corner ----
+    loadGLB('models/microphone.glb', function(model){
+      var box = new THREE.Box3().setFromObject(model);
+      var size = box.getSize(new THREE.Vector3());
+      var maxDim = Math.max(size.x, size.y, size.z);
+      var scale = 2.2 / maxDim;
+      model.scale.setScalar(scale);
+      var center = box.getCenter(new THREE.Vector3());
+      model.position.set(-7.5 - center.x * scale, -center.y * scale, -33.5 - center.z * scale);
+      scene.add(model);
+    });
+
+    // ---- PS5 — back-right corner ----
+    loadGLB('models/playstation_5_-_ps5.glb', function(model){
+      var box = new THREE.Box3().setFromObject(model);
+      var size = box.getSize(new THREE.Vector3());
+      var maxDim = Math.max(size.x, size.y, size.z);
+      var scale = 2.0 / maxDim;
+      model.scale.setScalar(scale);
+      var center = box.getCenter(new THREE.Vector3());
+      model.position.set(7.5 - center.x * scale, -center.y * scale, -33.5 - center.z * scale);
+      model.rotation.y = Math.PI * 0.25; // angle toward viewer
+      scene.add(model);
+    });
+
+    // ---- SNEAKER 1 — AJ1 Chicago upright, front-left ----
+    loadGLB('models/AJ1_Chicago__Lost_and_found_.glb', function(model){
+      var box = new THREE.Box3().setFromObject(model);
+      var size = box.getSize(new THREE.Vector3());
+      var maxDim = Math.max(size.x, size.y, size.z);
+      var scale = 1.1 / maxDim;
+      model.scale.setScalar(scale);
+      var center = box.getCenter(new THREE.Vector3());
+      model.position.set(-3.5 - center.x * scale, -center.y * scale, -3 - center.z * scale);
+      model.rotation.y = Math.PI * 0.3;
+      scene.add(model);
+    });
+
+    // ---- SNEAKER 2 — Reverse Mocha upright, mid-right ----
+    loadGLB('models/Air_Jordan_1_Reverse_Mocha__Right_Shoe_.glb', function(model){
+      var box = new THREE.Box3().setFromObject(model);
+      var size = box.getSize(new THREE.Vector3());
+      var maxDim = Math.max(size.x, size.y, size.z);
+      var scale = 1.1 / maxDim;
+      model.scale.setScalar(scale);
+      var center = box.getCenter(new THREE.Vector3());
+      model.position.set(4.5 - center.x * scale, -center.y * scale, -20 - center.z * scale);
+      model.rotation.y = -Math.PI * 0.2;
+      scene.add(model);
+    });
+
+    // ---- SNEAKER 3 — generic sneaker flat on floor, mid-left ----
+    loadGLB('models/sneaker.glb', function(model){
+      var box = new THREE.Box3().setFromObject(model);
+      var size = box.getSize(new THREE.Vector3());
+      var maxDim = Math.max(size.x, size.y, size.z);
+      var scale = 1.1 / maxDim;
+      model.scale.setScalar(scale);
+      var center = box.getCenter(new THREE.Vector3());
+      model.position.set(-4 - center.x * scale, -center.y * scale, -14 - center.z * scale);
+      model.rotation.z = Math.PI / 2; // lay flat on side
+      model.rotation.y = Math.PI * 0.4;
+      scene.add(model);
+    });
+
+    // ---- FOOTBALL — floor, mid-center ----
+    loadGLB('models/football.glb', function(model){
+      var box = new THREE.Box3().setFromObject(model);
+      var size = box.getSize(new THREE.Vector3());
+      var maxDim = Math.max(size.x, size.y, size.z);
+      var scale = 0.9 / maxDim;
+      model.scale.setScalar(scale);
+      var center = box.getCenter(new THREE.Vector3());
+      model.position.set(3 - center.x * scale, -center.y * scale, -10 - center.z * scale);
+      model.rotation.y = Math.PI * 0.15;
+      scene.add(model);
+    });
+
+    // ---- framed pieces (solid panel + backing plate border) ----
+    function makeFrame(id, x, y, z, roty){
+      var FW = 3.4, FH = 2.5, BORDER = 0.1;
+
+      // direction from frame toward room center (inward normal)
+      var inward = new THREE.Vector3(-x, 0, -z).normalize().multiplyScalar(0.06);
+      // for back wall and front wall x=0 so inward.x=0; use z direction instead
+      if (x === 0) inward = new THREE.Vector3(0, 0, z > -18 ? -1 : 1).multiplyScalar(0.06);
+
+      // backing plate
+      var back = new THREE.Mesh(new THREE.BoxGeometry(FW + BORDER*2, FH + BORDER*2, 0.04), frameBackMat);
+      back.position.set(x, y, z);
+      back.rotation.y = roty;
+      scene.add(back);
+
+      // face panel — offset inward from wall so it sits in front of the backing
+      var panel = new THREE.Mesh(new THREE.BoxGeometry(FW, FH, 0.07), frameMat);
+      panel.rotation.y = roty;
+      panel.position.set(x + inward.x, y, z + inward.z);
+      scene.add(panel);
+
+      frames.push({ id:id, obj:panel, back:back, pos:v(x,y,z) });
+    }
+    // left wall (face +x)
+    makeFrame('intro', -8.7, 2.6, -6,  Math.PI/2);
+    makeFrame('exp1',  -8.7, 2.6, -13, Math.PI/2);
+    makeFrame('exp2',  -8.7, 2.6, -20, Math.PI/2);
+    makeFrame('exp3',  -8.7, 2.6, -27, Math.PI/2);
+    // back wall (face +z)
+    makeFrame('certs',      -6, 2.6, -35.7, 0);
+    makeFrame('skills',      0, 2.6, -35.7, 0);
+    makeFrame('philosophy',  6, 2.6, -35.7, 0);
+    // right wall (face -x)
+    makeFrame('koko',     8.7, 2.6, -30, Math.PI/2);
+    makeFrame('synthia',  8.7, 2.6, -25, Math.PI/2);
+    makeFrame('aging',    8.7, 2.6, -20, Math.PI/2);
+    makeFrame('lidar',    8.7, 2.6, -15, Math.PI/2);
+    makeFrame('facemask', 8.7, 2.6, -10, Math.PI/2);
+    makeFrame('research', 8.7, 2.6, -5,  Math.PI/2);
+    // front wall, beside the door (face -z)
+    makeFrame('contact', 6, 2.6, -0.3, 0);
+
+    // dust motes
+    var pcount = 200, arr = new Float32Array(pcount*3);
+    for(var i=0;i<pcount;i++){ arr[i*3]=(Math.random()*2-1)*8; arr[i*3+1]=0.5+Math.random()*6; arr[i*3+2]= -Math.random()*36; }
+    var pgeo = new THREE.BufferGeometry(); pgeo.setAttribute('position', new THREE.Float32BufferAttribute(arr,3));
+    var particles = new THREE.Points(pgeo, new THREE.PointsMaterial({ color:0xb8b2a6, size:0.04, transparent:true, opacity:0.35, sizeAttenuation:true }));
+    scene.add(particles);
+
+    // ---- enter + pointer lock ----
+    var entered = false, locked = false;
+    var prompt = document.getElementById('prompt');
+    var landing = document.getElementById('landing');
+
+    function enter(){
+      if (entered) return; entered = true;
+      landing.classList.add('gone');
+      prompt.style.display = 'flex';
+    }
+    window.addEventListener('wheel', enter, { passive:true });
+    window.addEventListener('keydown', function(e){ if(!entered && (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown')) enter(); });
+    landing.addEventListener('click', enter);
+
+    prompt.addEventListener('click', function(){ canvas.requestPointerLock(); });
+    canvas.addEventListener('click', function(){ if (entered && !locked) canvas.requestPointerLock(); });
+    document.addEventListener('pointerlockchange', function(){
+      locked = (document.pointerLockElement === canvas);
+      prompt.style.display = (entered && !locked) ? 'flex' : 'none';
+      howtoBtn.style.display = locked ? 'none' : '';
+    });
+
+    // hand the cursor back automatically when leaving the page
+    // (Mission Control, Cmd+Tab, switching tabs), so no manual Esc is needed
+    function releaseLock(){ if (document.pointerLockElement) document.exitPointerLock(); }
+    window.addEventListener('blur', releaseLock);
+    document.addEventListener('visibilitychange', function(){ if (document.hidden) releaseLock(); });
+
+    // ---- look ----
+    var yaw = 0, pitch = 0, euler = new THREE.Euler(0,0,0,'YXZ');
+    document.addEventListener('mousemove', function(e){
+      if (!locked || reading) return;
+      yaw   -= e.movementX * 0.0022;
+      pitch -= e.movementY * 0.0022;
+      pitch = clamp(pitch, -1.45, 1.45);
+    });
+
+    // ---- move ----
+    var keys = {};
+    function setKey(e, down){
+      var k = e.code;
+      if (k==='KeyW'||k==='ArrowUp')    { keys.fwd = down; e.preventDefault(); }
+      if (k==='KeyS'||k==='ArrowDown')  { keys.back = down; e.preventDefault(); }
+      if (k==='KeyA'||k==='ArrowLeft')  { keys.left = down; e.preventDefault(); }
+      if (k==='KeyD'||k==='ArrowRight') { keys.right = down; e.preventDefault(); }
+    }
+    window.addEventListener('keydown', function(e){ setKey(e,true); });
+    window.addEventListener('keyup',   function(e){ setKey(e,false); });
+
+    // ---- active frame, hint, and reader ----
+    var reader = document.getElementById('reader');
+    var readerBody = document.getElementById('readerBody');
+    var readerClose = document.getElementById('readerClose');
+    var hint = document.getElementById('hint');
+    var activeId = null, reading = false;
+    var fwd = new THREE.Vector3(), to = new THREE.Vector3(), up = new THREE.Vector3(0,1,0);
+
+    function updateActiveFrame(){
+      camera.getWorldDirection(fwd);
+      var best = null, bestDot = 0.4;
+      for (var i=0;i<frames.length;i++){
+        to.subVectors(frames[i].pos, camera.position);
+        var dist = to.length();
+        if (dist < 7.5){ to.normalize(); var d = to.dot(fwd); if (d > bestDot){ bestDot = d; best = frames[i]; } }
+      }
+      for (var j=0;j<frames.length;j++){
+        var isActive = (best && frames[j]===best);
+        frames[j].obj.material  = isActive ? frameActiveMat : frameMat;
+        if (frames[j].back) frames[j].back.material = isActive ? frameBackActiveMat : frameBackMat;
+      }
+      activeId = best ? best.id : null;
+      if (activeId && locked && !reading) hint.classList.add('show'); else hint.classList.remove('show');
+    }
+
+    function openReader(id){
+      var src = document.querySelector('[data-frame="'+id+'"]');
+      readerBody.innerHTML = src ? src.innerHTML : '';
+      reader.classList.add('show');
+      reading = true;
+      hint.classList.remove('show');
+      // keep pointer lock engaged: closing with E returns straight to walking
+    }
+    function closeReader(){ reader.classList.remove('show'); reading = false; }
+
+    readerClose.addEventListener('click', closeReader);
+    reader.addEventListener('click', function(e){ if (e.target === reader) closeReader(); });
+    window.addEventListener('keydown', function(e){
+      if (e.code === 'KeyE'){ if (reading){ closeReader(); } else if (locked && activeId){ openReader(activeId); } }
+      else if (e.code === 'Escape' && reading){ closeReader(); }
+    });
+
+    // ---- loop ----
+    var clock = new THREE.Clock();
+    var right = new THREE.Vector3(), move = new THREE.Vector3();
+    function animate(){
+      requestAnimationFrame(animate);
+      var dt = Math.min(clock.getDelta(), 0.05);
+
+      euler.set(pitch, yaw, 0, 'YXZ');
+      camera.quaternion.setFromEuler(euler);
+
+      if (locked && !reading){
+        camera.getWorldDirection(fwd); fwd.y = 0; fwd.normalize();
+        right.crossVectors(fwd, up).normalize();
+        move.set(0,0,0);
+        if (keys.fwd)  move.add(fwd);
+        if (keys.back) move.sub(fwd);
+        if (keys.right) move.add(right);
+        if (keys.left)  move.sub(right);
+        if (move.lengthSq() > 0){ move.normalize().multiplyScalar(4.6 * dt); camera.position.add(move); }
+        camera.position.x = clamp(camera.position.x, -RW + 0.7, RW - 0.7);
+        camera.position.z = clamp(camera.position.z, BACK + 0.7, FRONT - 0.7);
+        camera.position.y = 2.4;
+      }
+
+      for (var g=0; g<gemList.length; g++){ gemList[g].rotation.y += 0.005; }
+      // whale slowly rotates suspended from ceiling
+      if (whaleModel) whaleModel.rotation.y += 0.0015;
+      // shark gentle bob
+      if (sharkModel) sharkModel.position.y += Math.sin(Date.now() * 0.001) * 0.0008;
+      updateActiveFrame();
+      renderer.render(scene, camera);
+    }
+
+    function onResize(){ camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); }
+    window.addEventListener('resize', onResize, { passive:true });
+
+    animate();
+  }
+</script>
+</body>
+</html>
