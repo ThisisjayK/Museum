@@ -483,7 +483,7 @@
     }
 
     // ---- WHALE — suspended from ceiling, slowly rotating ----
-    loadGLB('models/blue_whale.glb', function(model){
+    loadGLB('Models/blue_whale.glb', function(model){
       whaleModel = model;
       // fit to a reasonable size
       var box = new THREE.Box3().setFromObject(model);
@@ -498,7 +498,7 @@
     });
 
     // ---- SHARK — bursting through right wall ----
-    loadGLB('models/Tiburo_n_nadando.glb', function(model){
+    loadGLB('Models/Tiburón nadando.glb', function(model){
       sharkModel = model;
       var box = new THREE.Box3().setFromObject(model);
       var size = box.getSize(new THREE.Vector3());
@@ -514,7 +514,7 @@
     });
 
     // ---- MOUNTAIN — center of room ----
-    loadGLB('models/snowy_mountain_v1.glb', function(model){
+    loadGLB('Models/snowy_mountain_v1.glb', function(model){
       var box = new THREE.Box3().setFromObject(model);
       var size = box.getSize(new THREE.Vector3());
       var maxDim = Math.max(size.x, size.y, size.z);
@@ -526,7 +526,7 @@
     });
 
     // ---- MICROPHONE — back-left corner ----
-    loadGLB('models/microphone.glb', function(model){
+    loadGLB('Models/microphone.glb', function(model){
       var box = new THREE.Box3().setFromObject(model);
       var size = box.getSize(new THREE.Vector3());
       var maxDim = Math.max(size.x, size.y, size.z);
@@ -538,7 +538,7 @@
     });
 
     // ---- PS5 — back-right corner ----
-    loadGLB('models/playstation_5_-_ps5.glb', function(model){
+    loadGLB('Models/playstation_5_-_ps5.glb', function(model){
       var box = new THREE.Box3().setFromObject(model);
       var size = box.getSize(new THREE.Vector3());
       var maxDim = Math.max(size.x, size.y, size.z);
@@ -551,7 +551,7 @@
     });
 
     // ---- SNEAKER 1 — AJ1 Chicago upright, front-left ----
-    loadGLB('models/AJ1_Chicago__Lost_and_found_.glb', function(model){
+    loadGLB('Models/AJ1 Chicago "Lost and found".glb', function(model){
       var box = new THREE.Box3().setFromObject(model);
       var size = box.getSize(new THREE.Vector3());
       var maxDim = Math.max(size.x, size.y, size.z);
@@ -564,7 +564,7 @@
     });
 
     // ---- SNEAKER 2 — Reverse Mocha upright, mid-right ----
-    loadGLB('models/Air_Jordan_1_Reverse_Mocha__Right_Shoe_.glb', function(model){
+    loadGLB('Models/Air Jordan 1 Reverse Mocha (Right Shoe).glb', function(model){
       var box = new THREE.Box3().setFromObject(model);
       var size = box.getSize(new THREE.Vector3());
       var maxDim = Math.max(size.x, size.y, size.z);
@@ -577,7 +577,7 @@
     });
 
     // ---- SNEAKER 3 — generic sneaker flat on floor, mid-left ----
-    loadGLB('models/sneaker.glb', function(model){
+    loadGLB('Models/sneaker.glb', function(model){
       var box = new THREE.Box3().setFromObject(model);
       var size = box.getSize(new THREE.Vector3());
       var maxDim = Math.max(size.x, size.y, size.z);
@@ -591,7 +591,7 @@
     });
 
     // ---- FOOTBALL — floor, mid-center ----
-    loadGLB('models/football.glb', function(model){
+    loadGLB('Models/football.glb', function(model){
       var box = new THREE.Box3().setFromObject(model);
       var size = box.getSize(new THREE.Vector3());
       var maxDim = Math.max(size.x, size.y, size.z);
