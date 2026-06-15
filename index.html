@@ -494,27 +494,29 @@
       return box.getCenter(new THREE.Vector3()).multiplyScalar(scale);
     }
 
-    // ---- WHALE — suspended from ceiling, fits inside room ----
+    // returns the Y offset needed to sit the model exactly on the floor (Y=0)
+    function groundY(model, scale){
+      var box = new THREE.Box3().setFromObject(model);
+      return -box.min.y * scale;
+    }
+
+    // ---- WHALE — suspended from ceiling, 3x shark size ----
     loadGLB('Models/blue_whale.glb', function(model){
       whaleModel = model;
-      var scale = fitModel(model, 10); // 10 units long — fits room width of 18
+      var scale = fitModel(model, 9); // 3x the shark's 3 units
       model.scale.setScalar(scale);
       var c = centerModel(model, scale);
-      // position so belly is at Y=4.8, leaves clearance from ceiling (7) and eye-level (2.4)
-      model.position.set(-c.x, 4.8 - c.y, -18 - c.z);
+      model.position.set(-c.x, 5.0 - c.y, -18 - c.z);
       scene.add(model);
     });
 
-    // ---- SHARK — bursting through right wall, not overlapping frames ----
+    // ---- SHARK — suspended from ceiling like whale ----
     loadGLB('Models/Tiburón nadando.glb', function(model){
       sharkModel = model;
-      var scale = fitModel(model, 3.0);
+      var scale = fitModel(model, 3.0); // base size
       model.scale.setScalar(scale);
       var c = centerModel(model, scale);
-      // Z=-16 puts it between frames, X=7 partially through wall
-      model.position.set(7 - c.x, 2.2 - c.y, -16 - c.z);
-      model.rotation.y = -Math.PI * 0.6;
-      model.rotation.z = 0.12;
+      model.position.set(3 - c.x, 4.5 - c.y, -28 - c.z);
       scene.add(model);
     });
 
@@ -523,7 +525,7 @@
       var scale = fitModel(model, 3.5);
       model.scale.setScalar(scale);
       var c = centerModel(model, scale);
-      model.position.set(-c.x, -c.y, -18 - c.z);
+      model.position.set(-c.x, groundY(model, scale), -18 - c.z);
       scene.add(model);
     });
 
@@ -532,7 +534,7 @@
       var scale = fitModel(model, 2.8);
       model.scale.setScalar(scale);
       var c = centerModel(model, scale);
-      model.position.set(-7 - c.x, -c.y, -33 - c.z);
+      model.position.set(-7 - c.x, groundY(model, scale), -33 - c.z);
       scene.add(model);
     });
 
@@ -541,7 +543,7 @@
       var scale = fitModel(model, 2.5);
       model.scale.setScalar(scale);
       var c = centerModel(model, scale);
-      model.position.set(7 - c.x, -c.y, -33 - c.z);
+      model.position.set(7 - c.x, groundY(model, scale), -33 - c.z);
       model.rotation.y = -Math.PI * 0.3;
       scene.add(model);
     });
@@ -551,7 +553,7 @@
       var scale = fitModel(model, 1.4);
       model.scale.setScalar(scale);
       var c = centerModel(model, scale);
-      model.position.set(-4 - c.x, -c.y, -5 - c.z);
+      model.position.set(-4 - c.x, groundY(model, scale), -5 - c.z);
       model.rotation.y = Math.PI * 0.4;
       scene.add(model);
     });
@@ -561,7 +563,7 @@
       var scale = fitModel(model, 1.4);
       model.scale.setScalar(scale);
       var c = centerModel(model, scale);
-      model.position.set(5 - c.x, -c.y, -22 - c.z);
+      model.position.set(5 - c.x, groundY(model, scale), -22 - c.z);
       model.rotation.y = -Math.PI * 0.3;
       scene.add(model);
     });
@@ -571,7 +573,7 @@
       var scale = fitModel(model, 1.4);
       model.scale.setScalar(scale);
       var c = centerModel(model, scale);
-      model.position.set(-4.5 - c.x, -c.y, -15 - c.z);
+      model.position.set(-4.5 - c.x, groundY(model, scale), -15 - c.z);
       model.rotation.z = Math.PI / 2;
       model.rotation.y = Math.PI * 0.4;
       scene.add(model);
@@ -582,7 +584,7 @@
       var scale = fitModel(model, 1.2);
       model.scale.setScalar(scale);
       var c = centerModel(model, scale);
-      model.position.set(4 - c.x, -c.y, -11 - c.z);
+      model.position.set(4 - c.x, groundY(model, scale), -11 - c.z);
       scene.add(model);
     });
 
@@ -751,10 +753,7 @@
       }
 
       for (var g=0; g<gemList.length; g++){ gemList[g].rotation.y += 0.005; }
-      // whale slowly rotates suspended from ceiling
-      if (whaleModel) whaleModel.rotation.y += 0.0015;
-      // shark gentle bob
-      if (sharkModel) sharkModel.position.y += Math.sin(Date.now() * 0.001) * 0.0008;
+      // no per-frame animation on models
       updateActiveFrame();
       renderer.render(scene, camera);
     }
