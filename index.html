@@ -510,14 +510,15 @@
       return -box.min.y * scale;
     }
 
-    // ---- WHALE — suspended from ceiling, 3x shark size ----
+    // ---- WHALE — suspended from ceiling ----
     loadGLB('Models/blue_whale.glb', function(model, gltf){
       whaleModel = model;
-      var scale = fitModel(model, 5);
+      var scale = fitModel(model, 2);
       model.scale.setScalar(scale);
       var c = centerModel(model, scale);
-      model.position.set(-c.x, 5.0 - c.y, -18 - c.z);
+      model.position.set(-c.x, 4.0 - c.y, -18 - c.z);
       scene.add(model);
+      model.updateMatrixWorld(true);
       playAnimations(model, gltf);
       // rope from top of whale to ceiling (Y=7)
       var wbox = new THREE.Box3().setFromObject(model);
@@ -533,11 +534,12 @@
     // ---- SHARK — suspended from ceiling like whale ----
     loadGLB('Models/Tiburón nadando.glb', function(model, gltf){
       sharkModel = model;
-      var scale = fitModel(model, 3.0); // base size
+      var scale = fitModel(model, 3.0);
       model.scale.setScalar(scale);
       var c = centerModel(model, scale);
       model.position.set(3 - c.x, 4.5 - c.y, -28 - c.z);
       scene.add(model);
+      model.updateMatrixWorld(true);
       playAnimations(model, gltf);
       // rope from top of shark to ceiling (Y=7)
       var sbox = new THREE.Box3().setFromObject(model);
@@ -552,76 +554,84 @@
 
     // ---- MOUNTAIN — center of room, prominent ----
     loadGLB('Models/snowy_mountain_v1.glb', function(model){
-      var scale = fitModel(model, 3.5);
+      var scale = fitModel(model, 5);
       model.scale.setScalar(scale);
-      var c = centerModel(model, scale);
-      model.position.set(-c.x, groundY(model, scale), -18 - c.z);
       scene.add(model);
+      model.updateMatrixWorld(true);
+      var mbox = new THREE.Box3().setFromObject(model);
+      var c = new THREE.Vector3(); mbox.getCenter(c);
+      model.position.set(-c.x, -mbox.min.y, -18 - c.z);
     });
 
     // ---- MICROPHONE — back-left corner, proper height ----
     loadGLB('Models/microphone.glb', function(model){
       var scale = fitModel(model, 2.8);
       model.scale.setScalar(scale);
-      var c = centerModel(model, scale);
-      model.position.set(-7 - c.x, groundY(model, scale), -33 - c.z);
       scene.add(model);
+      model.updateMatrixWorld(true);
+      var mbox = new THREE.Box3().setFromObject(model);
+      var c = new THREE.Vector3(); mbox.getCenter(c);
+      model.position.set(-7 - c.x, -mbox.min.y, -33 - c.z);
     });
 
     // ---- PS5 — back-right corner, recognizable size ----
     loadGLB('Models/playstation_5_-_ps5.glb', function(model){
       var scale = fitModel(model, 2.5);
       model.scale.setScalar(scale);
-      var c = centerModel(model, scale);
-      model.position.set(7 - c.x, groundY(model, scale), -33 - c.z);
       model.rotation.y = -Math.PI * 0.3;
       scene.add(model);
+      model.updateMatrixWorld(true);
+      var pbox = new THREE.Box3().setFromObject(model);
+      var c = new THREE.Vector3(); pbox.getCenter(c);
+      model.position.set(7 - c.x, -pbox.min.y, -33 - c.z);
     });
 
     // ---- SNEAKER 1 — AJ1 Chicago upright, mid-left of room ----
     loadGLB('Models/AJ1 Chicago "Lost and found".glb', function(model){
       var scale = fitModel(model, 1.4);
       model.scale.setScalar(scale);
-      var c = centerModel(model, scale);
-      model.position.set(-4 - c.x, groundY(model, scale), -18 - c.z);
       model.rotation.y = Math.PI * 0.4;
       scene.add(model);
+      model.updateMatrixWorld(true);
+      var abox = new THREE.Box3().setFromObject(model);
+      var c = new THREE.Vector3(); abox.getCenter(c);
+      model.position.set(-5 - c.x, -abox.min.y, -12 - c.z);
     });
 
     // ---- SNEAKER 2 — Reverse Mocha upright, mid-right ----
     loadGLB('Models/Air Jordan 1 Reverse Mocha (Right Shoe).glb', function(model){
       var scale = fitModel(model, 1.4);
       model.scale.setScalar(scale);
-      var c = centerModel(model, scale);
-      model.position.set(5 - c.x, groundY(model, scale), -22 - c.z);
       model.rotation.y = -Math.PI * 0.3;
       scene.add(model);
+      model.updateMatrixWorld(true);
+      var rbox = new THREE.Box3().setFromObject(model);
+      var c = new THREE.Vector3(); rbox.getCenter(c);
+      model.position.set(5 - c.x, -rbox.min.y, -22 - c.z);
     });
 
     // ---- SNEAKER 3 — flat on floor, mid-left ----
-    // rotation.z = PI/2 must be applied BEFORE computing groundY, because rotating the model
-    // changes which dimension becomes the height. We apply scale+rotation first, add to scene
-    // temporarily, recompute the bounding box, then correct Y.
     loadGLB('Models/sneaker.glb', function(model){
       var scale = fitModel(model, 1.4);
       model.scale.setScalar(scale);
       model.rotation.z = Math.PI / 2;
       model.rotation.y = Math.PI * 0.4;
-      // place at Y=0 temporarily, then lift by rotated box.min.y offset
       scene.add(model);
-      var rbox = new THREE.Box3().setFromObject(model);
-      var liftY = -rbox.min.y;
-      var c = centerModel(model, scale);
-      model.position.set(-4.5 - c.x, liftY, -15 - c.z);
+      model.updateMatrixWorld(true);
+      var sbox = new THREE.Box3().setFromObject(model);
+      var c = new THREE.Vector3(); sbox.getCenter(c);
+      model.position.set(-4.5 - c.x, -sbox.min.y, -15 - c.z);
     });
 
     // ---- FOOTBALL — floor, right side mid-gallery ----
     loadGLB('Models/football.glb', function(model){
       var scale = fitModel(model, 1.2);
       model.scale.setScalar(scale);
-      var c = centerModel(model, scale);
-      model.position.set(4 - c.x, groundY(model, scale), -11 - c.z);
       scene.add(model);
+      model.updateMatrixWorld(true);
+      var fbox = new THREE.Box3().setFromObject(model);
+      var c = new THREE.Vector3(); fbox.getCenter(c);
+      model.position.set(4 - c.x, -fbox.min.y, -11 - c.z);
     });
 
     // ---- framed pieces (solid panel + backing plate border) ----
