@@ -304,9 +304,9 @@
     <h2>Looking for full-time PM and <span class="accent">AI PM</span> roles, starting August 2026.</h2>
     <div class="links">
       <!-- EDIT every link -->
-      <a href="mailto:ADD_YOUR_EMAIL" data-todo>Email</a>
-      <a href="ADD_LINKEDIN_URL" data-todo>LinkedIn</a>
-      <a href="ADD_GITHUB_URL" data-todo>GitHub</a>
+      <a href="mailto:jayanthadityaaa@gmail.com">Email</a>
+      <a href="https://www.linkedin.com/in/jayanth-kappagantula/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://github.com/ThisisjayK" target="_blank" rel="noopener">GitHub</a>
       <a href="ADD_RESUME_LINK" data-todo>Résumé (PDF)</a>
     </div>
   </div>
@@ -474,12 +474,22 @@
     // ---- GLB loader ----
     var loader = new THREE.GLTFLoader();
     var whaleModel = null, sharkModel = null;
+    var mixers = []; // all active AnimationMixers updated each frame
 
     function loadGLB(url, onLoad){
-      loader.load(url, function(gltf){ onLoad(gltf.scene); },
+      loader.load(url, function(gltf){ onLoad(gltf.scene, gltf); },
         undefined,
         function(err){ console.warn('GLB load failed:', url, err); }
       );
+    }
+
+    function playAnimations(model, gltf){
+      if (!gltf.animations || gltf.animations.length === 0) return;
+      var mixer = new THREE.AnimationMixer(model);
+      gltf.animations.forEach(function(clip){
+        mixer.clipAction(clip).play();
+      });
+      mixers.push(mixer);
     }
 
     function fitModel(model, targetSize){
@@ -501,23 +511,43 @@
     }
 
     // ---- WHALE — suspended from ceiling, 3x shark size ----
-    loadGLB('Models/blue_whale.glb', function(model){
+    loadGLB('Models/blue_whale.glb', function(model, gltf){
       whaleModel = model;
-      var scale = fitModel(model, 9); // 3x the shark's 3 units
+      var scale = fitModel(model, 5);
       model.scale.setScalar(scale);
       var c = centerModel(model, scale);
       model.position.set(-c.x, 5.0 - c.y, -18 - c.z);
       scene.add(model);
+      playAnimations(model, gltf);
+      // rope from top of whale to ceiling (Y=7)
+      var wbox = new THREE.Box3().setFromObject(model);
+      var ropeLen = 7 - wbox.max.y;
+      if (ropeLen > 0.05) {
+        var ropeMat = new THREE.MeshBasicMaterial({ color: 0x8a7a6a });
+        var rope = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, ropeLen, 6), ropeMat);
+        rope.position.set(model.position.x, wbox.max.y + ropeLen / 2, model.position.z);
+        scene.add(rope);
+      }
     });
 
     // ---- SHARK — suspended from ceiling like whale ----
-    loadGLB('Models/Tiburón nadando.glb', function(model){
+    loadGLB('Models/Tiburón nadando.glb', function(model, gltf){
       sharkModel = model;
       var scale = fitModel(model, 3.0); // base size
       model.scale.setScalar(scale);
       var c = centerModel(model, scale);
       model.position.set(3 - c.x, 4.5 - c.y, -28 - c.z);
       scene.add(model);
+      playAnimations(model, gltf);
+      // rope from top of shark to ceiling (Y=7)
+      var sbox = new THREE.Box3().setFromObject(model);
+      var ropeLen = 7 - sbox.max.y;
+      if (ropeLen > 0.05) {
+        var ropeMat = new THREE.MeshBasicMaterial({ color: 0x8a7a6a });
+        var rope = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, ropeLen, 6), ropeMat);
+        rope.position.set(model.position.x, sbox.max.y + ropeLen / 2, model.position.z);
+        scene.add(rope);
+      }
     });
 
     // ---- MOUNTAIN — center of room, prominent ----
@@ -548,12 +578,12 @@
       scene.add(model);
     });
 
-    // ---- SNEAKER 1 — AJ1 Chicago upright, front-left of room ----
+    // ---- SNEAKER 1 — AJ1 Chicago upright, mid-left of room ----
     loadGLB('Models/AJ1 Chicago "Lost and found".glb', function(model){
       var scale = fitModel(model, 1.4);
       model.scale.setScalar(scale);
       var c = centerModel(model, scale);
-      model.position.set(-4 - c.x, groundY(model, scale), -5 - c.z);
+      model.position.set(-4 - c.x, groundY(model, scale), -18 - c.z);
       model.rotation.y = Math.PI * 0.4;
       scene.add(model);
     });
@@ -569,14 +599,20 @@
     });
 
     // ---- SNEAKER 3 — flat on floor, mid-left ----
+    // rotation.z = PI/2 must be applied BEFORE computing groundY, because rotating the model
+    // changes which dimension becomes the height. We apply scale+rotation first, add to scene
+    // temporarily, recompute the bounding box, then correct Y.
     loadGLB('Models/sneaker.glb', function(model){
       var scale = fitModel(model, 1.4);
       model.scale.setScalar(scale);
-      var c = centerModel(model, scale);
-      model.position.set(-4.5 - c.x, groundY(model, scale), -15 - c.z);
       model.rotation.z = Math.PI / 2;
       model.rotation.y = Math.PI * 0.4;
+      // place at Y=0 temporarily, then lift by rotated box.min.y offset
       scene.add(model);
+      var rbox = new THREE.Box3().setFromObject(model);
+      var liftY = -rbox.min.y;
+      var c = centerModel(model, scale);
+      model.position.set(-4.5 - c.x, liftY, -15 - c.z);
     });
 
     // ---- FOOTBALL — floor, right side mid-gallery ----
@@ -753,6 +789,7 @@
       }
 
       for (var g=0; g<gemList.length; g++){ gemList[g].rotation.y += 0.005; }
+      for (var m=0; m<mixers.length; m++){ mixers[m].update(dt); }
       // no per-frame animation on models
       updateActiveFrame();
       renderer.render(scene, camera);
