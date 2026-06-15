@@ -520,16 +520,16 @@
       scene.add(model);
       model.updateMatrixWorld(true);
       playAnimations(model, gltf);
-      // two ropes for a heavy whale — spaced 1 unit apart along Z
+      // two ropes for a heavy whale — shorter, front rope near neck/head
       var wbox = new THREE.Box3().setFromObject(model);
-      var ropeLen = 7 - wbox.max.y;
+      var ropeLen = (7 - wbox.max.y) * 0.6; // shorter ropes
       if (ropeLen > 0.05) {
         var ropeMat = new THREE.MeshBasicMaterial({ color: 0x6b5a48 });
         var ropeGeo = new THREE.CylinderGeometry(0.025, 0.025, ropeLen, 8);
         var ropeY = wbox.max.y + ropeLen / 2;
-        // front rope
+        // front rope — shifted toward head (more negative Z)
         var rope1 = new THREE.Mesh(ropeGeo, ropeMat);
-        rope1.position.set(model.position.x - 0.5, ropeY, model.position.z - 0.5);
+        rope1.position.set(model.position.x - 0.5, ropeY, model.position.z - 1.2);
         scene.add(rope1);
         // rear rope
         var rope2 = new THREE.Mesh(ropeGeo, ropeMat);
@@ -544,7 +544,7 @@
       var scale = fitModel(model, 3.0);
       model.scale.setScalar(scale);
       var c = centerModel(model, scale);
-      model.position.set(3 - c.x, 4.5 - c.y, -28 - c.z);
+      model.position.set(3 - c.x, 5.5 - c.y, -28 - c.z);
       scene.add(model);
       model.updateMatrixWorld(true);
       // rope from top of shark to ceiling (Y=7)
@@ -582,7 +582,7 @@
 
     // ---- PS5 — back-right corner, recognizable size ----
     loadGLB('Models/playstation_5_-_ps5.glb', function(model){
-      var scale = fitModel(model, 1.8);
+      var scale = fitModel(model, 1.4);
       model.scale.setScalar(scale);
       model.rotation.y = -Math.PI * 0.3;
       scene.add(model);
@@ -631,7 +631,7 @@
 
     // ---- FOOTBALL — floor, right side mid-gallery ----
     loadGLB('Models/football.glb', function(model){
-      var scale = fitModel(model, 1.2);
+      var scale = fitModel(model, 0.8);
       model.scale.setScalar(scale);
       scene.add(model);
       model.updateMatrixWorld(true);
