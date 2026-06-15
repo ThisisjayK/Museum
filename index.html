@@ -510,24 +510,31 @@
       return -box.min.y * scale;
     }
 
-    // ---- WHALE — suspended from ceiling ----
+    // ---- WHALE — suspended from ceiling, closer to entrance ----
     loadGLB('Models/blue_whale.glb', function(model, gltf){
       whaleModel = model;
       var scale = fitModel(model, 2);
       model.scale.setScalar(scale);
       var c = centerModel(model, scale);
-      model.position.set(-c.x, 4.0 - c.y, -18 - c.z);
+      model.position.set(-c.x, 4.0 - c.y, -10 - c.z);
       scene.add(model);
       model.updateMatrixWorld(true);
       playAnimations(model, gltf);
-      // rope from top of whale to ceiling (Y=7)
+      // two ropes for a heavy whale — spaced 1 unit apart along Z
       var wbox = new THREE.Box3().setFromObject(model);
       var ropeLen = 7 - wbox.max.y;
       if (ropeLen > 0.05) {
-        var ropeMat = new THREE.MeshBasicMaterial({ color: 0x8a7a6a });
-        var rope = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, ropeLen, 6), ropeMat);
-        rope.position.set(model.position.x, wbox.max.y + ropeLen / 2, model.position.z);
-        scene.add(rope);
+        var ropeMat = new THREE.MeshBasicMaterial({ color: 0x6b5a48 });
+        var ropeGeo = new THREE.CylinderGeometry(0.025, 0.025, ropeLen, 8);
+        var ropeY = wbox.max.y + ropeLen / 2;
+        // front rope
+        var rope1 = new THREE.Mesh(ropeGeo, ropeMat);
+        rope1.position.set(model.position.x - 0.5, ropeY, model.position.z - 0.5);
+        scene.add(rope1);
+        // rear rope
+        var rope2 = new THREE.Mesh(ropeGeo, ropeMat);
+        rope2.position.set(model.position.x + 0.5, ropeY, model.position.z + 0.5);
+        scene.add(rope2);
       }
     });
 
@@ -540,7 +547,6 @@
       model.position.set(3 - c.x, 4.5 - c.y, -28 - c.z);
       scene.add(model);
       model.updateMatrixWorld(true);
-      playAnimations(model, gltf);
       // rope from top of shark to ceiling (Y=7)
       var sbox = new THREE.Box3().setFromObject(model);
       var ropeLen = 7 - sbox.max.y;
@@ -554,7 +560,7 @@
 
     // ---- MOUNTAIN — center of room, prominent ----
     loadGLB('Models/snowy_mountain_v1.glb', function(model){
-      var scale = fitModel(model, 5);
+      var scale = fitModel(model, 8);
       model.scale.setScalar(scale);
       scene.add(model);
       model.updateMatrixWorld(true);
@@ -576,7 +582,7 @@
 
     // ---- PS5 — back-right corner, recognizable size ----
     loadGLB('Models/playstation_5_-_ps5.glb', function(model){
-      var scale = fitModel(model, 2.5);
+      var scale = fitModel(model, 1.8);
       model.scale.setScalar(scale);
       model.rotation.y = -Math.PI * 0.3;
       scene.add(model);
