@@ -617,16 +617,78 @@
       model.position.set(-7 - c.x, -mbox.min.y, -33 - c.z);
     });
 
-    // ---- PS5 — back-right corner, recognizable size ----
-    loadGLB('Models/playstation_5_-_ps5.glb', function(model){
-      var scale = fitModel(model, 1.4);
+    // ---- SMART TV on the left wall (X=-9), near the door, screen glowing PS5 blue ----
+    // build a PS5 home-screen canvas: deep blue with a soft glow and white "PS5"
+    function makePS5ScreenTexture(){
+      var w = 1024, h = 576;
+      var cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      var ctx = cv.getContext('2d');
+      // radial blue gradient (PS home-screen feel)
+      var g = ctx.createRadialGradient(w*0.5, h*0.42, 60, w*0.5, h*0.5, w*0.7);
+      g.addColorStop(0, '#2b7cff');
+      g.addColorStop(0.5, '#0b50d0');
+      g.addColorStop(1, '#04183f');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+      // soft vignette
+      ctx.fillStyle = 'rgba(0,0,0,0.18)';
+      ctx.fillRect(0, 0, w, h);
+      // "PS5" wordmark
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '700 220px "Space Grotesk", system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = 'rgba(120,180,255,0.9)';
+      ctx.shadowBlur = 40;
+      ctx.fillText('PS5', w*0.5, h*0.5);
+      var tex = new THREE.CanvasTexture(cv);
+      tex.encoding = THREE.sRGBEncoding;
+      return tex;
+    }
+
+    (function buildTV(){
+      var tvW = 3.6, tvH = 2.0, tvDepth = 0.12;
+      var wallX = -9, tvZ = -30, tvCenterY = 3.6;
+      var tvGroup = new THREE.Group();
+      // bezel (dark box)
+      var bezelMat = new THREE.MeshLambertMaterial({ color: 0x0d0d10 });
+      var bezel = new THREE.Mesh(new THREE.BoxGeometry(tvDepth, tvH, tvW), bezelMat);
+      tvGroup.add(bezel);
+      // glowing screen — slightly inset, faces +X into the room
+      var screenMat = new THREE.MeshBasicMaterial({ map: makePS5ScreenTexture() });
+      var screen = new THREE.Mesh(new THREE.PlaneGeometry(tvW * 0.94, tvH * 0.9), screenMat);
+      screen.rotation.y = Math.PI / 2;       // face +X
+      screen.position.set(tvDepth/2 + 0.005, 0, 0);
+      tvGroup.add(screen);
+      tvGroup.position.set(wallX + tvDepth/2 + 0.02, tvCenterY, tvZ);
+      scene.add(tvGroup);
+    })();
+
+    // ---- COFFEE TABLE + PS5 on top, in front of the TV ----
+    var tableX = -7.4, tableZ = -30;
+    loadGLB('Models/noguchi_coffee_table.glb', function(model){
+      var scale = fitModel(model, 2.2); // table footprint ~2.2 units on longest side
       model.scale.setScalar(scale);
-      model.rotation.y = -Math.PI * 0.3;
       scene.add(model);
       model.updateMatrixWorld(true);
-      var pbox = new THREE.Box3().setFromObject(model);
-      var c = new THREE.Vector3(); pbox.getCenter(c);
-      model.position.set(7 - c.x, -pbox.min.y, -33 - c.z);
+      var tbox = new THREE.Box3().setFromObject(model);
+      var c = new THREE.Vector3(); tbox.getCenter(c);
+      var tableTopY = tbox.max.y - tbox.min.y; // height of table once grounded
+      model.position.set(tableX - c.x, -tbox.min.y, tableZ - c.z);
+
+      // now place the PS5 on top of the table
+      loadGLB('Models/playstation_5_-_ps5.glb', function(ps5){
+        var ps5Scale = fitModel(ps5, 1.1);
+        ps5.scale.setScalar(ps5Scale);
+        ps5.rotation.y = Math.PI * 0.5; // face the room
+        scene.add(ps5);
+        ps5.updateMatrixWorld(true);
+        var pbox = new THREE.Box3().setFromObject(ps5);
+        var pc = new THREE.Vector3(); pbox.getCenter(pc);
+        // sit PS5 bottom exactly on the table top
+        ps5.position.set(tableX - pc.x, tableTopY - pbox.min.y, tableZ - pc.z);
+      });
     });
 
     // ---- SNEAKER 1 — AJ1 Chicago upright, mid-left of room ----
