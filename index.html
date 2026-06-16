@@ -930,33 +930,30 @@
     function makeFrame(id, x, y, z, roty, eyebrow, title){
       var FW = 3.4, FH = 2.5, BORDER = 0.1;
 
-      // direction from frame toward room center (inward normal)
-      var inward = new THREE.Vector3(-x, 0, -z).normalize().multiplyScalar(0.06);
-      // for back wall and front wall x=0 so inward.x=0; use z direction instead
-      if (x === 0) inward = new THREE.Vector3(0, 0, z > -18 ? -1 : 1).multiplyScalar(0.06);
+      // unit inward normal (points from the wall toward room center)
+      var nx = 0, nz = 0;
+      if (x < 0) nx = 1;            // left wall faces +x
+      else if (x > 0) nx = -1;      // right wall faces -x
+      else nz = (z > -18) ? -1 : 1; // front/back wall faces -z / +z
 
-      // backing plate
+      // backing plate flat on the wall
       var back = new THREE.Mesh(new THREE.BoxGeometry(FW + BORDER*2, FH + BORDER*2, 0.04), frameBackMat);
       back.position.set(x, y, z);
       back.rotation.y = roty;
       scene.add(back);
 
-      // face panel (plain white box)
+      // face panel flat on the wall, nudged a hair toward the room so it sits over the backing
       var panel = new THREE.Mesh(new THREE.BoxGeometry(FW, FH, 0.07), frameMat);
       panel.rotation.y = roty;
-      panel.position.set(x + inward.x, y, z + inward.z);
+      panel.position.set(x + nx*0.03, y, z + nz*0.03);
       scene.add(panel);
 
-      // label plane — sits just in front of the panel, always facing into the room
-      var labelMat = new THREE.MeshBasicMaterial({ map: makeFrameLabelTexture(eyebrow, title), transparent: false });
+      // label plane flush on the panel's room-facing side, oriented by rotation only (no lookAt)
+      var labelMat = new THREE.MeshBasicMaterial({ map: makeFrameLabelTexture(eyebrow, title) });
       var label = new THREE.Mesh(new THREE.PlaneGeometry(FW * 0.98, FH * 0.98), labelMat);
-      label.rotation.y = roty;
-      // push the label slightly further into the room than the panel face
-      var labelOffset = inward.clone().normalize().multiplyScalar(0.05);
-      label.position.set(x + inward.x + labelOffset.x, y, z + inward.z + labelOffset.z);
-      // orient the plane to face the room: PlaneGeometry faces +z by default,
-      // so match it to the inward direction
-      label.lookAt(label.position.clone().add(inward));
+      // a PlaneGeometry faces +z; rotate it about Y so its normal matches (nx, nz)
+      label.rotation.y = Math.atan2(nx, nz);
+      label.position.set(x + nx*0.07, y, z + nz*0.07);
       scene.add(label);
 
       frames.push({ id:id, obj:panel, back:back, pos:v(x,y,z) });
