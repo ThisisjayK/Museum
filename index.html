@@ -557,16 +557,7 @@
       }
     });
 
-    // ---- MOUNTAIN — center of room, prominent ----
-    loadGLB('Models/snowy_mountain_v1.glb', function(model){
-      var scale = fitModel(model, 8);
-      model.scale.setScalar(scale);
-      scene.add(model);
-      model.updateMatrixWorld(true);
-      var mbox = new THREE.Box3().setFromObject(model);
-      var c = new THREE.Vector3(); mbox.getCenter(c);
-      model.position.set(-c.x, -mbox.min.y, -18 - c.z);
-    });
+    // mountain removed
 
     // ---- MICROPHONE — back-left corner, proper height ----
     loadGLB('Models/microphone.glb', function(model){
@@ -648,9 +639,10 @@
       var scaleY = scaleX;          // keep thickness proportional to width scale
       model.scale.set(scaleX, scaleY, scaleZ);
       model.rotation.x = -Math.PI / 2;
-      model.position.set(0, 0.01, midZ); // 0.01 above Y=0 to avoid z-fighting with floor plane
+      model.position.set(0, 0.01, midZ);
       scene.add(model);
-      floor.visible = false; // hide the plain floor plane underneath
+      // only hide plain floor once GLB is confirmed loaded
+      floor.visible = false;
     });
 
     // ---- framed pieces (solid panel + backing plate border) ----
