@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Jayanth Adithya Kappagantula — The Museum</title>
 <meta name="description" content="A walk-through line-art museum portfolio for Jayanth Adithya Kappagantula. Product manager at the intersection of AI and healthcare." />
-<script>
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-</script>
-<script defer src="/_vercel/insights/script.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -940,23 +936,25 @@
       else if (x > 0) nx = -1;      // right wall faces -x
       else nz = (z > -18) ? -1 : 1; // front/back wall faces -z / +z
 
+      // single rotation derived from the wall normal — used for ALL parts so they can't disagree
+      var faceAngle = Math.atan2(nx, nz);
+
       // backing plate flat on the wall
       var back = new THREE.Mesh(new THREE.BoxGeometry(FW + BORDER*2, FH + BORDER*2, 0.04), frameBackMat);
       back.position.set(x, y, z);
-      back.rotation.y = roty;
+      back.rotation.y = faceAngle;
       scene.add(back);
 
       // face panel flat on the wall, nudged a hair toward the room so it sits over the backing
       var panel = new THREE.Mesh(new THREE.BoxGeometry(FW, FH, 0.07), frameMat);
-      panel.rotation.y = roty;
+      panel.rotation.y = faceAngle;
       panel.position.set(x + nx*0.03, y, z + nz*0.03);
       scene.add(panel);
 
-      // label plane flush on the panel's room-facing side, oriented by rotation only (no lookAt)
+      // label plane flush on the panel's room-facing side
       var labelMat = new THREE.MeshBasicMaterial({ map: makeFrameLabelTexture(eyebrow, title) });
       var label = new THREE.Mesh(new THREE.PlaneGeometry(FW * 0.98, FH * 0.98), labelMat);
-      // a PlaneGeometry faces +z; rotate it about Y so its normal matches (nx, nz)
-      label.rotation.y = Math.atan2(nx, nz);
+      label.rotation.y = faceAngle;
       label.position.set(x + nx*0.07, y, z + nz*0.07);
       scene.add(label);
 
