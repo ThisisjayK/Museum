@@ -875,8 +875,59 @@
 
     // ---- (cyberpunk floor GLB removed in favor of procedural marble checkerboard) ----
 
-    // ---- framed pieces (solid panel + backing plate border) ----
-    function makeFrame(id, x, y, z, roty){
+    // ---- framed pieces (solid panel + backing plate border, with a text label) ----
+    // draw a label (small eyebrow + wrapped title) onto a canvas for the panel face
+    function makeFrameLabelTexture(eyebrow, title){
+      var w = 1024, h = Math.round(1024 * (2.5 / 3.4)); // match panel aspect (FW x FH)
+      var cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      var ctx = cv.getContext('2d');
+      // panel background (white, matches frameMat)
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+
+      // eyebrow (small, uppercase, brown accent)
+      ctx.fillStyle = '#6b5244';
+      ctx.font = '600 34px "IBM Plex Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText(eyebrow.toUpperCase(), w/2, h*0.30);
+
+      // small divider line under eyebrow
+      ctx.strokeStyle = '#6b5244';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(w*0.5 - 60, h*0.30 + 50);
+      ctx.lineTo(w*0.5 + 60, h*0.30 + 50);
+      ctx.stroke();
+
+      // title (larger, dark ink, word-wrapped)
+      ctx.fillStyle = '#1f2127';
+      ctx.font = '600 60px "Space Grotesk", system-ui, sans-serif';
+      var words = title.split(' ');
+      var lines = [];
+      var line = '';
+      var maxW = w * 0.82;
+      for (var i = 0; i < words.length; i++){
+        var test = line ? line + ' ' + words[i] : words[i];
+        if (ctx.measureText(test).width > maxW && line){
+          lines.push(line); line = words[i];
+        } else { line = test; }
+      }
+      if (line) lines.push(line);
+      var lineH = 72;
+      var startY = h*0.46;
+      for (var li = 0; li < lines.length; li++){
+        ctx.fillText(lines[li], w/2, startY + li*lineH);
+      }
+
+      var tex = new THREE.CanvasTexture(cv);
+      tex.encoding = THREE.sRGBEncoding;
+      tex.anisotropy = 8;
+      return tex;
+    }
+
+    function makeFrame(id, x, y, z, roty, eyebrow, title){
       var FW = 3.4, FH = 2.5, BORDER = 0.1;
 
       // direction from frame toward room center (inward normal)
@@ -890,32 +941,44 @@
       back.rotation.y = roty;
       scene.add(back);
 
-      // face panel — offset inward from wall so it sits in front of the backing
+      // face panel (plain white box)
       var panel = new THREE.Mesh(new THREE.BoxGeometry(FW, FH, 0.07), frameMat);
       panel.rotation.y = roty;
       panel.position.set(x + inward.x, y, z + inward.z);
       scene.add(panel);
 
+      // label plane — sits just in front of the panel, always facing into the room
+      var labelMat = new THREE.MeshBasicMaterial({ map: makeFrameLabelTexture(eyebrow, title), transparent: false });
+      var label = new THREE.Mesh(new THREE.PlaneGeometry(FW * 0.98, FH * 0.98), labelMat);
+      label.rotation.y = roty;
+      // push the label slightly further into the room than the panel face
+      var labelOffset = inward.clone().normalize().multiplyScalar(0.05);
+      label.position.set(x + inward.x + labelOffset.x, y, z + inward.z + labelOffset.z);
+      // orient the plane to face the room: PlaneGeometry faces +z by default,
+      // so match it to the inward direction
+      label.lookAt(label.position.clone().add(inward));
+      scene.add(label);
+
       frames.push({ id:id, obj:panel, back:back, pos:v(x,y,z) });
     }
     // left wall (face +x)
-    makeFrame('intro', -8.7, 2.6, -6,  Math.PI/2);
-    makeFrame('exp1',  -8.7, 2.6, -13, Math.PI/2);
-    makeFrame('exp2',  -8.7, 2.6, -20, Math.PI/2);
-    makeFrame('exp3',  -8.7, 2.6, -27, Math.PI/2);
+    makeFrame('intro', -8.7, 2.6, -6,  Math.PI/2, 'Who I am', 'Jayanth Adithya Kappagantula');
+    makeFrame('exp1',  -8.7, 2.6, -13, Math.PI/2, 'Experience · 2025', 'Technical Product Manager Intern · Stage Zero Health');
+    makeFrame('exp2',  -8.7, 2.6, -20, Math.PI/2, 'Experience · 2024', 'Pega System Architect · Bluevoir');
+    makeFrame('exp3',  -8.7, 2.6, -27, Math.PI/2, 'Experience · 2023', 'Business Analyst · Bluevoir');
     // back wall (face +z)
-    makeFrame('certs',      -6, 2.6, -35.7, 0);
-    makeFrame('skills',      0, 2.6, -35.7, 0);
-    makeFrame('philosophy',  6, 2.6, -35.7, 0);
+    makeFrame('certs',      -6, 2.6, -35.7, 0, 'Certifications', 'Salesforce & Pega');
+    makeFrame('skills',      0, 2.6, -35.7, 0, 'Toolkit', 'How I work, and what I work with');
+    makeFrame('philosophy',  6, 2.6, -35.7, 0, 'Product philosophy', 'In my own words');
     // right wall (face -x)
-    makeFrame('koko',     8.7, 2.6, -30, Math.PI/2);
-    makeFrame('synthia',  8.7, 2.6, -25, Math.PI/2);
-    makeFrame('aging',    8.7, 2.6, -20, Math.PI/2);
-    makeFrame('lidar',    8.7, 2.6, -15, Math.PI/2);
-    makeFrame('facemask', 8.7, 2.6, -10, Math.PI/2);
-    makeFrame('research', 8.7, 2.6, -5,  Math.PI/2);
+    makeFrame('koko',     8.7, 2.6, -30, Math.PI/2, 'Case study · Consumer', 'Koko');
+    makeFrame('synthia',  8.7, 2.6, -25, Math.PI/2, 'Case study · AI', 'Synthia');
+    makeFrame('aging',    8.7, 2.6, -20, Math.PI/2, 'Case study · Systems', 'Human aging as a complex system');
+    makeFrame('lidar',    8.7, 2.6, -15, Math.PI/2, 'Case study · Engineering', 'Obstacle detection with 2D LIDAR');
+    makeFrame('facemask', 8.7, 2.6, -10, Math.PI/2, 'Case study · Engineering', 'Face mask detection');
+    makeFrame('research', 8.7, 2.6, -5,  Math.PI/2, 'Research', 'Risk in generative AI & agents');
     // front wall, beside the door (face -z)
-    makeFrame('contact', 6, 2.6, -0.3, 0);
+    makeFrame('contact', 6, 2.6, -0.3, 0, 'The exit', 'Contact & links');
 
     // dust motes
     var pcount = 200, arr = new Float32Array(pcount*3);
@@ -1052,5 +1115,11 @@
     animate();
   }
 </script>
+
+<!-- Vercel Web Analytics (static-HTML version) -->
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
