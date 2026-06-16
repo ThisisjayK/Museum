@@ -640,7 +640,7 @@
     });
 
     // ---- SHARK — suspended from ceiling like whale ----
-    loadGLB('Models/Tiburón nadando.glb', function(model, gltf){
+    loadGLB('Models/Tiburo_n_nadando.glb', function(model, gltf){
       sharkModel = model;
       var scale = fitModel(model, 3.0);
       model.scale.setScalar(scale);
@@ -768,7 +768,7 @@
     loadGLB('Models/cat__stylized_animated_3d_model.glb', function(model, gltf){
       var scale = fitModel(model, 1.1);
       model.scale.setScalar(scale);
-      model.rotation.y = Math.PI * 0.25; // angle toward room center
+      model.rotation.y = Math.PI * 0.5; // turned further left toward room center
       scene.add(model);
       model.updateMatrixWorld(true);
       var box = new THREE.Box3().setFromObject(model);
@@ -795,6 +795,18 @@
       var scale = fitModel(model, 1.3);
       model.scale.setScalar(scale);
       model.rotation.y = Math.PI; // face toward entrance
+      // fix see-through rendering: keep the texture, but force opaque single-sided draw
+      model.traverse(function(node){
+        if (node.isMesh && node.material){
+          node.material.transparent = false;
+          node.material.opacity = 1;
+          node.material.depthWrite = true;
+          node.material.depthTest = true;
+          node.material.side = THREE.FrontSide;
+          node.material.alphaTest = 0;
+          node.material.needsUpdate = true;
+        }
+      });
       scene.add(model);
       model.updateMatrixWorld(true);
       var box = new THREE.Box3().setFromObject(model);
@@ -804,7 +816,7 @@
     });
 
     // ---- SNEAKER 1 — AJ1 Chicago upright, mid-left of room ----
-    loadGLB('Models/AJ1 Chicago "Lost and found".glb', function(model){
+    loadGLB('Models/AJ1_Chicago_Lost_and_Found.glb', function(model){
       var scale = fitModel(model, 1.4);
       model.scale.setScalar(scale);
       model.rotation.y = Math.PI * 0.4;
@@ -816,7 +828,7 @@
     });
 
     // ---- SNEAKER 2 — Reverse Mocha upright, mid-right ----
-    loadGLB('Models/Air Jordan 1 Reverse Mocha (Right Shoe).glb', function(model){
+    loadGLB('Models/Air_Jordan_1_Reverse_Mocha__Right_Shoe_.glb', function(model){
       var scale = fitModel(model, 1.4);
       model.scale.setScalar(scale);
       model.rotation.y = -Math.PI * 0.3;
