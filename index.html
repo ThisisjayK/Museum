@@ -631,18 +631,30 @@
     });
 
     // ---- CYBERPUNK FLOOR — replaces plain floor plane ----
-    // GLB local bounds: X -1697 to +1697 (w=3395), Y -1219 to +1219 (d=2438), Z thin (~30)
-    // The mesh lies flat in XY, so rotate -PI/2 on X to lay it down, then scale to fit 18x36
+    // GLB slab: X=3395 wide, Y=2438 deep, Z=30 thick (no embedded rotation)
+    // Rotate -PI/2 on X so local Y lays into world Z (depth).
+    // After rotation: worldX = localX, worldZ = localY, worldY(thickness) = localZ.
     loadGLB('Models/cyberpunk_room_flooring.glb', function(model){
-      var scaleX = roomW  / 3395;   // 18 / 3395
-      var scaleZ = roomLen / 2438;  // 36 / 2438
-      var scaleY = scaleX;          // keep thickness proportional to width scale
-      model.scale.set(scaleX, scaleY, scaleZ);
       model.rotation.x = -Math.PI / 2;
-      model.position.set(0, 0.01, midZ);
+      // measure unscaled, rotated footprint, then scale each axis to fit the room exactly
+      model.scale.set(1, 1, 1);
+      model.updateMatrixWorld(true);
+      var b = new THREE.Box3().setFromObject(model);
+      var sizeX = b.max.x - b.min.x; // world width
+      var sizeZ = b.max.z - b.min.z; // world depth
+      var sizeY = b.max.y - b.min.y; // world thickness
+      var sx = roomW   / sizeX;  // fit 18 wide
+      var sz = roomLen / sizeZ;  // fit 36 deep
+      var sy = sx;               // thin proportional thickness
+      model.scale.set(sx, sy, sz);
+      model.updateMatrixWorld(true);
+      // recenter on floor using actual scaled box
+      var b2 = new THREE.Box3().setFromObject(model);
+      var c = new THREE.Vector3(); b2.getCenter(c);
+      model.position.set(model.position.x - c.x, model.position.y - b2.min.y + 0.005, model.position.z - c.z + midZ);
       scene.add(model);
-      // only hide plain floor once GLB is confirmed loaded
       floor.visible = false;
+    });
     });
 
     // ---- framed pieces (solid panel + backing plate border) ----
