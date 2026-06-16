@@ -579,6 +579,21 @@
       mixers.push(mixer);
     }
 
+    // play a single clip by name substring (case-insensitive); falls back to first clip
+    function playClip(model, gltf, nameContains){
+      if (!gltf.animations || gltf.animations.length === 0) return;
+      var clips = gltf.animations;
+      var chosen = null;
+      var want = nameContains.toLowerCase();
+      for (var i = 0; i < clips.length; i++){
+        if ((clips[i].name || '').toLowerCase().indexOf(want) !== -1){ chosen = clips[i]; break; }
+      }
+      if (!chosen) chosen = clips[0];
+      var mixer = new THREE.AnimationMixer(model);
+      mixer.clipAction(chosen).play();
+      mixers.push(mixer);
+    }
+
     function fitModel(model, targetSize){
       var box = new THREE.Box3().setFromObject(model);
       var size = box.getSize(new THREE.Vector3());
@@ -646,7 +661,7 @@
 
     // mountain removed
 
-    // ---- MICROPHONE — back-left corner, proper height ----
+    // ---- MICROPHONE — back-right corner, proper height ----
     loadGLB('Models/microphone.glb', function(model){
       var scale = fitModel(model, 2.8);
       model.scale.setScalar(scale);
@@ -654,7 +669,7 @@
       model.updateMatrixWorld(true);
       var mbox = new THREE.Box3().setFromObject(model);
       var c = new THREE.Vector3(); mbox.getCenter(c);
-      model.position.set(-7 - c.x, -mbox.min.y, -33 - c.z);
+      model.position.set(7 - c.x, -mbox.min.y, -33 - c.z);
     });
 
     // ---- SMART TV on the left wall (X=-9), near the door, screen glowing PS5 blue ----
@@ -746,6 +761,46 @@
         // sit PS5 bottom exactly on the table top
         ps5.position.set(tableX - pc.x, tableTopY - pbox.min.y, tableZ - pc.z);
       });
+    });
+
+    // ---- PETS — three animated stylized animals, energetic idle clips, spread out ----
+    // CAT — front-left near entrance, yawning/stretching
+    loadGLB('Models/cat__stylized_animated_3d_model.glb', function(model, gltf){
+      var scale = fitModel(model, 1.1);
+      model.scale.setScalar(scale);
+      model.rotation.y = Math.PI * 0.25; // angle toward room center
+      scene.add(model);
+      model.updateMatrixWorld(true);
+      var box = new THREE.Box3().setFromObject(model);
+      var c = new THREE.Vector3(); box.getCenter(c);
+      model.position.set(-6 - c.x, -box.min.y, -5 - c.z);
+      playClip(model, gltf, 'StretchYawnIdle');
+    });
+
+    // PUPPY — front-right near entrance, energetic idle
+    loadGLB('Models/puppy__stylized_animated_3d_model.glb', function(model, gltf){
+      var scale = fitModel(model, 1.2);
+      model.scale.setScalar(scale);
+      model.rotation.y = -Math.PI * 0.25;
+      scene.add(model);
+      model.updateMatrixWorld(true);
+      var box = new THREE.Box3().setFromObject(model);
+      var c = new THREE.Vector3(); box.getCenter(c);
+      model.position.set(6 - c.x, -box.min.y, -6 - c.z);
+      playClip(model, gltf, 'IdleEnergetic');
+    });
+
+    // BABY DOG — center-back open floor, shaking
+    loadGLB('Models/baby_dog.glb', function(model, gltf){
+      var scale = fitModel(model, 1.3);
+      model.scale.setScalar(scale);
+      model.rotation.y = Math.PI; // face toward entrance
+      scene.add(model);
+      model.updateMatrixWorld(true);
+      var box = new THREE.Box3().setFromObject(model);
+      var c = new THREE.Vector3(); box.getCenter(c);
+      model.position.set(0 - c.x, -box.min.y, -26 - c.z);
+      playClip(model, gltf, 'shake');
     });
 
     // ---- SNEAKER 1 — AJ1 Chicago upright, mid-left of room ----
