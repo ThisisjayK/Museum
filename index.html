@@ -388,7 +388,7 @@
     var roomH   = TOP;                    // 7
     var midZ    = (FRONT + BACK) / 2;    // -18
 
-    // floor
+    // floor — kept as var so cyberpunk GLB can hide it on load
     var floor = new THREE.Mesh(new THREE.PlaneGeometry(roomW, roomLen), floorMat);
     floor.rotation.x = -Math.PI / 2;
     floor.position.set(0, 0, midZ);
@@ -516,10 +516,9 @@
       var scale = fitModel(model, 2);
       model.scale.setScalar(scale);
       var c = centerModel(model, scale);
-      model.position.set(-c.x, 4.0 - c.y, -10 - c.z);
+      model.position.set(1 - c.x, 4.0 - c.y, -10 - c.z);
       scene.add(model);
       model.updateMatrixWorld(true);
-      playAnimations(model, gltf);
       // two ropes for a heavy whale — shorter, front rope near neck/head
       var wbox = new THREE.Box3().setFromObject(model);
       var ropeLen = (7 - wbox.max.y) * 0.6; // shorter ropes
@@ -638,6 +637,20 @@
       var fbox = new THREE.Box3().setFromObject(model);
       var c = new THREE.Vector3(); fbox.getCenter(c);
       model.position.set(4 - c.x, -fbox.min.y, -11 - c.z);
+    });
+
+    // ---- CYBERPUNK FLOOR — replaces plain floor plane ----
+    // GLB local bounds: X -1697 to +1697 (w=3395), Y -1219 to +1219 (d=2438), Z thin (~30)
+    // The mesh lies flat in XY, so rotate -PI/2 on X to lay it down, then scale to fit 18x36
+    loadGLB('Models/cyberpunk_room_flooring.glb', function(model){
+      var scaleX = roomW  / 3395;   // 18 / 3395
+      var scaleZ = roomLen / 2438;  // 36 / 2438
+      var scaleY = scaleX;          // keep thickness proportional to width scale
+      model.scale.set(scaleX, scaleY, scaleZ);
+      model.rotation.x = -Math.PI / 2;
+      model.position.set(0, 0.01, midZ); // 0.01 above Y=0 to avoid z-fighting with floor plane
+      scene.add(model);
+      floor.visible = false; // hide the plain floor plane underneath
     });
 
     // ---- framed pieces (solid panel + backing plate border) ----
