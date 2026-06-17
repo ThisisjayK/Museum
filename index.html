@@ -930,11 +930,14 @@
     function makeFrame(id, x, y, z, roty, eyebrow, title){
       var FW = 3.4, FH = 2.5, BORDER = 0.1;
 
-      // unit inward normal (points from the wall toward room center)
+      // decide which wall this frame is on by proximity, then set its inward normal.
+      // side walls sit at x ≈ ±8.7; front/back walls at z ≈ -0.3 / -35.7.
       var nx = 0, nz = 0;
-      if (x < 0) nx = 1;            // left wall faces +x
-      else if (x > 0) nx = -1;      // right wall faces -x
-      else nz = (z > -18) ? -1 : 1; // front/back wall faces -z / +z
+      if (Math.abs(x) > 8) {
+        nx = (x < 0) ? 1 : -1;          // left wall faces +x, right wall faces -x
+      } else {
+        nz = (z > -18) ? -1 : 1;        // front wall faces -z, back wall faces +z
+      }
 
       // single rotation derived from the wall normal — used for ALL parts so they can't disagree
       var faceAngle = Math.atan2(nx, nz);
@@ -951,11 +954,12 @@
       panel.position.set(x + nx*0.03, y, z + nz*0.03);
       scene.add(panel);
 
-      // label plane flush on the panel's room-facing side
-      var labelMat = new THREE.MeshBasicMaterial({ map: makeFrameLabelTexture(eyebrow, title) });
+      // label plane — placed with a CLEAR gap in front of the panel's front face to avoid z-fighting.
+      // panel center is at offset 0.03 with depth 0.07, so its front face is at 0.065; put label at 0.12.
+      var labelMat = new THREE.MeshBasicMaterial({ map: makeFrameLabelTexture(eyebrow, title), depthTest: true, depthWrite: true });
       var label = new THREE.Mesh(new THREE.PlaneGeometry(FW * 0.98, FH * 0.98), labelMat);
       label.rotation.y = faceAngle;
-      label.position.set(x + nx*0.07, y, z + nz*0.07);
+      label.position.set(x + nx*0.12, y, z + nz*0.12);
       scene.add(label);
 
       frames.push({ id:id, obj:panel, back:back, pos:v(x,y,z) });
